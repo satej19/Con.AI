@@ -10,7 +10,8 @@ const create = async (req, res) => {
 };
 exports.create = create;
 const list = async (req, res) => {
-    const { materials, meta } = await (0, material_service_1.getAllMaterials)(req.query);
+    const query = req.query;
+    const { materials, meta } = await (0, material_service_1.getAllMaterials)(query);
     ApiResponse_1.ApiResponse.success(res, 200, 'Materials retrieved successfully', materials, meta);
 };
 exports.list = list;

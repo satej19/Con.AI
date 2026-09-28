@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const constants_1 = require("../config/constants");
 const materialSchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -45,17 +46,19 @@ const materialSchema = new mongoose_1.Schema({
         required: [true, 'Code is required'],
         unique: true,
         trim: true,
+        uppercase: true,
+        immutable: true,
         index: true,
     },
     category: {
         type: String,
-        enum: ['cement', 'steel', 'aggregate', 'chemical', 'pipe', 'valve', 'electrical', 'other'],
+        enum: Object.values(constants_1.MATERIAL_CATEGORY),
         required: [true, 'Category is required'],
         index: true,
     },
     unit: {
         type: String,
-        enum: ['kg', 'ton', 'litre', 'metre', 'piece', 'bag', 'cubic_metre', 'sq_metre'],
+        enum: Object.values(constants_1.MATERIAL_UNIT),
         required: [true, 'Unit is required'],
     },
     description: {

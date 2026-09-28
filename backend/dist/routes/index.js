@@ -5,7 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_routes_1 = __importDefault(require("./auth.routes"));
+const project_routes_1 = __importDefault(require("./project.routes"));
 const material_routes_1 = __importDefault(require("./material.routes"));
+const supplier_routes_1 = __importDefault(require("./supplier.routes"));
+const user_routes_1 = __importDefault(require("./user.routes"));
+const purchaseOrder_routes_1 = __importDefault(require("./purchaseOrder.routes"));
 const router = (0, express_1.Router)();
 // Health check endpoint
 router.get('/health', (_req, res) => {
@@ -17,6 +21,10 @@ router.get('/health', (_req, res) => {
 });
 // Mount sub-routers
 router.use('/auth', auth_routes_1.default);
+router.use('/users', user_routes_1.default);
+router.use('/projects', project_routes_1.default);
 router.use('/materials', material_routes_1.default);
+router.use('/suppliers', supplier_routes_1.default);
+router.use('/purchase-orders', purchaseOrder_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map
