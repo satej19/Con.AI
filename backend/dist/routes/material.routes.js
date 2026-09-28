@@ -36,14 +36,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const asyncHandler_1 = require("../middleware/asyncHandler");
 const authenticate_1 = require("../middleware/authenticate");
+const authorize_1 = require("../middleware/authorize");
 const validate_1 = require("../middleware/validate");
-const auth_validator_1 = require("../validators/auth.validator");
-const authController = __importStar(require("../controllers/auth.controller"));
+const material_validator_1 = require("../validators/material.validator");
+const materialController = __importStar(require("../controllers/material.controller"));
 const router = (0, express_1.Router)();
-// Public routes
-router.post('/register', (0, validate_1.validateBody)(auth_validator_1.registerSchema), (0, asyncHandler_1.asyncHandler)(authController.register));
-router.post('/login', (0, validate_1.validateBody)(auth_validator_1.loginSchema), (0, asyncHandler_1.asyncHandler)(authController.login));
-// Protected routes
-router.get('/me', authenticate_1.authenticate, (0, asyncHandler_1.asyncHandler)(authController.getMe));
+// All routes require authentication
+router.use(authenticate_1.authenticate);
+// Create material (admin, manager, store_keeper)
+router.post('/', authorize_1.requireStoreKeeper, (0, validate_1.validateBody)(material_validator_1.createMaterialSchema), (0, asyncHandler_1.asyncHandler)(materialController.create));
+// List materials (all authenticated users)
+router.get('/', (0, validate_1.validateQuery)(material_validator_1.materialQuerySchema), (0, asyncHandler_1.asyncHandler)(materialController.list));
+// Get single material (all authenticated users)
+router.get('/:id', (0, validate_1.validateParams)(material_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(materialController.getById));
+// Update material (admin, manager, store_keeper)
+router.patch('/:id', authorize_1.requireStoreKeeper, (0, validate_1.validateParams)(material_validator_1.idParamSchema), (0, validate_1.validateBody)(material_validator_1.updateMaterialSchema), (0, asyncHandler_1.asyncHandler)(materialController.update));
 exports.default = router;
-//# sourceMappingURL=auth.routes.js.map
+//# sourceMappingURL=material.routes.js.map

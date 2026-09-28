@@ -49,7 +49,7 @@ const loginUser = async (input) => {
 };
 exports.loginUser = loginUser;
 const getCurrentUser = async (userId) => {
-    const user = await User_model_1.default.findById(userId);
+    const user = await User_model_1.default.findById(userId).select('-password');
     if (!user) {
         throw new AppError_1.AppError('User not found', 404);
     }
