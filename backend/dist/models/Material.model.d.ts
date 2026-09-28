@@ -1,9 +1,10 @@
 import { Document, Model } from 'mongoose';
+import { MaterialCategory, MaterialUnit } from '../config/constants';
 interface IMaterial extends Document {
     name: string;
     code: string;
-    category: string;
-    unit: string;
+    category: MaterialCategory;
+    unit: MaterialUnit;
     description?: string;
     hsnCode?: string;
     reorderLevel: number;
