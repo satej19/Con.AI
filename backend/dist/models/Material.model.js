@@ -33,17 +33,54 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const asyncHandler_1 = require("../middleware/asyncHandler");
-const authenticate_1 = require("../middleware/authenticate");
-const validate_1 = require("../middleware/validate");
-const auth_validator_1 = require("../validators/auth.validator");
-const authController = __importStar(require("../controllers/auth.controller"));
-const router = (0, express_1.Router)();
-// Public routes
-router.post('/register', (0, validate_1.validateBody)(auth_validator_1.registerSchema), (0, asyncHandler_1.asyncHandler)(authController.register));
-router.post('/login', (0, validate_1.validateBody)(auth_validator_1.loginSchema), (0, asyncHandler_1.asyncHandler)(authController.login));
-// Protected routes
-router.get('/me', authenticate_1.authenticate, (0, asyncHandler_1.asyncHandler)(authController.getMe));
-exports.default = router;
-//# sourceMappingURL=auth.routes.js.map
+const mongoose_1 = __importStar(require("mongoose"));
+const materialSchema = new mongoose_1.Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'],
+        trim: true,
+    },
+    code: {
+        type: String,
+        required: [true, 'Code is required'],
+        unique: true,
+        trim: true,
+        index: true,
+    },
+    category: {
+        type: String,
+        enum: ['cement', 'steel', 'aggregate', 'chemical', 'pipe', 'valve', 'electrical', 'other'],
+        required: [true, 'Category is required'],
+        index: true,
+    },
+    unit: {
+        type: String,
+        enum: ['kg', 'ton', 'litre', 'metre', 'piece', 'bag', 'cubic_metre', 'sq_metre'],
+        required: [true, 'Unit is required'],
+    },
+    description: {
+        type: String,
+        trim: true,
+    },
+    hsnCode: {
+        type: String,
+        trim: true,
+    },
+    reorderLevel: {
+        type: Number,
+        default: 0,
+        min: [0, 'Reorder level cannot be negative'],
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
+    },
+}, {
+    timestamps: true,
+});
+materialSchema.index({ code: 1 }, { unique: true });
+materialSchema.index({ category: 1 });
+materialSchema.index({ name: 'text' });
+const MaterialModel = mongoose_1.default.models['Material'] || mongoose_1.default.model('Material', materialSchema);
+exports.default = MaterialModel;
+//# sourceMappingURL=Material.model.js.map

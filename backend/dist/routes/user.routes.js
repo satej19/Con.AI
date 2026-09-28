@@ -36,14 +36,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const asyncHandler_1 = require("../middleware/asyncHandler");
 const authenticate_1 = require("../middleware/authenticate");
+const authorize_1 = require("../middleware/authorize");
 const validate_1 = require("../middleware/validate");
 const auth_validator_1 = require("../validators/auth.validator");
 const authController = __importStar(require("../controllers/auth.controller"));
 const router = (0, express_1.Router)();
-// Public routes
-router.post('/register', (0, validate_1.validateBody)(auth_validator_1.registerSchema), (0, asyncHandler_1.asyncHandler)(authController.register));
-router.post('/login', (0, validate_1.validateBody)(auth_validator_1.loginSchema), (0, asyncHandler_1.asyncHandler)(authController.login));
-// Protected routes
-router.get('/me', authenticate_1.authenticate, (0, asyncHandler_1.asyncHandler)(authController.getMe));
+// Admin only routes
+router.get('/', authenticate_1.authenticate, authorize_1.requireAdmin, (0, asyncHandler_1.asyncHandler)(authController.listUsers));
+router.patch('/:id/role', authenticate_1.authenticate, authorize_1.requireAdmin, (0, validate_1.validateParams)(auth_validator_1.idParamSchema), (0, validate_1.validateBody)(auth_validator_1.updateRoleSchema), (0, asyncHandler_1.asyncHandler)(authController.updateRole));
+router.patch('/:id/status', authenticate_1.authenticate, authorize_1.requireAdmin, (0, validate_1.validateParams)(auth_validator_1.idParamSchema), (0, validate_1.validateBody)(auth_validator_1.updateStatusSchema), (0, asyncHandler_1.asyncHandler)(authController.updateStatus));
 exports.default = router;
-//# sourceMappingURL=auth.routes.js.map
+//# sourceMappingURL=user.routes.js.map

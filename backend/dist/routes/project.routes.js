@@ -36,14 +36,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const asyncHandler_1 = require("../middleware/asyncHandler");
 const authenticate_1 = require("../middleware/authenticate");
+const authorize_1 = require("../middleware/authorize");
 const validate_1 = require("../middleware/validate");
-const auth_validator_1 = require("../validators/auth.validator");
-const authController = __importStar(require("../controllers/auth.controller"));
+const project_validator_1 = require("../validators/project.validator");
+const projectController = __importStar(require("../controllers/project.controller"));
 const router = (0, express_1.Router)();
-// Public routes
-router.post('/register', (0, validate_1.validateBody)(auth_validator_1.registerSchema), (0, asyncHandler_1.asyncHandler)(authController.register));
-router.post('/login', (0, validate_1.validateBody)(auth_validator_1.loginSchema), (0, asyncHandler_1.asyncHandler)(authController.login));
-// Protected routes
-router.get('/me', authenticate_1.authenticate, (0, asyncHandler_1.asyncHandler)(authController.getMe));
+// All project routes require authentication
+router.use(authenticate_1.authenticate);
+router.post('/', authorize_1.requireManager, (0, validate_1.validateBody)(project_validator_1.createProjectSchema), (0, asyncHandler_1.asyncHandler)(projectController.create));
+router.get('/', (0, validate_1.validateQuery)(project_validator_1.projectQuerySchema), (0, asyncHandler_1.asyncHandler)(projectController.list));
+router.get('/:id', (0, validate_1.validateParams)(project_validator_1.projectIdParamSchema), (0, asyncHandler_1.asyncHandler)(projectController.getById));
+router.patch('/:id', authorize_1.requireManager, (0, validate_1.validateParams)(project_validator_1.projectIdParamSchema), (0, validate_1.validateBody)(project_validator_1.updateProjectSchema), (0, asyncHandler_1.asyncHandler)(projectController.update));
 exports.default = router;
-//# sourceMappingURL=auth.routes.js.map
+//# sourceMappingURL=project.routes.js.map

@@ -10,7 +10,7 @@ dotenv_1.default.config();
 const envSchema = zod_1.z.object({
     NODE_ENV: zod_1.z.enum(['development', 'production', 'test']).default('development'),
     PORT: zod_1.z.string().default('5000'),
-    MONGO_URI: zod_1.z.string().url(),
+    MONGO_URI: zod_1.z.string().min(1),
     JWT_SECRET: zod_1.z.string().min(32),
     JWT_EXPIRES_IN: zod_1.z.string().default('7d'),
     BCRYPT_SALT_ROUNDS: zod_1.z.coerce.number().default(12),
