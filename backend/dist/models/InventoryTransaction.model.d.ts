@@ -1,22 +1,19 @@
 import { Document, Model, Types } from 'mongoose';
-import { TransactionType, ReferenceType } from '../config/constants';
-export interface IInventoryTransaction extends Document {
-    inventoryId: Types.ObjectId;
-    materialId: Types.ObjectId;
-    projectId: Types.ObjectId;
-    type: TransactionType;
+interface IInventoryTransaction extends Document {
+    inventoryId: Types.ObjectId | string;
+    materialId: Types.ObjectId | string;
+    projectId: Types.ObjectId | string;
+    type: string;
     quantity: number;
-    previousStock: number;
-    newStock: number;
-    referenceType: ReferenceType;
-    referenceId?: Types.ObjectId | string;
-    unitPrice: number;
-    totalCost: number;
-    performedBy: Types.ObjectId;
+    balanceAfter: number;
+    referenceType: string;
+    referenceId: Types.ObjectId | string;
+    performedBy: Types.ObjectId | string;
     notes?: string;
+    date: Date;
     createdAt: Date;
-    updatedAt: Date;
 }
 declare const InventoryTransactionModel: Model<IInventoryTransaction>;
 export default InventoryTransactionModel;
+export type { IInventoryTransaction };
 //# sourceMappingURL=InventoryTransaction.model.d.ts.map

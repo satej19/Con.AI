@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
-export interface IInventory extends Document {
+interface IInventory extends Document {
   materialId: Types.ObjectId;
   projectId: Types.ObjectId;
   currentStock: number;
@@ -43,3 +43,4 @@ const InventoryModel: Model<IInventory> =
   mongoose.models['Inventory'] || mongoose.model<IInventory>('Inventory', inventorySchema);
 
 export default InventoryModel;
+export type { IInventory };

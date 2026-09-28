@@ -34,79 +34,61 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const constants_1 = require("../config/constants");
 const inventoryTransactionSchema = new mongoose_1.Schema({
     inventoryId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Inventory',
+        type: String,
         required: [true, 'Inventory reference is required'],
-        index: true,
     },
     materialId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Material',
+        type: String,
         required: [true, 'Material reference is required'],
     },
     projectId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Project',
+        type: String,
         required: [true, 'Project reference is required'],
     },
     type: {
         type: String,
-        enum: Object.values(constants_1.TRANSACTION_TYPE),
+        enum: ['RECEIVE', 'ISSUE', 'RETURN'],
         required: [true, 'Transaction type is required'],
-        index: true,
     },
     quantity: {
         type: Number,
         required: [true, 'Quantity is required'],
-        min: [0.001, 'Quantity must be positive'],
+        min: [1, 'Quantity must be positive'],
     },
-    previousStock: {
+    balanceAfter: {
         type: Number,
-        required: [true, 'Previous stock is required'],
-    },
-    newStock: {
-        type: Number,
-        required: [true, 'New stock is required'],
+        required: [true, 'Balance after is required'],
     },
     referenceType: {
         type: String,
-        enum: Object.values(constants_1.REFERENCE_TYPE),
+        enum: ['purchase_order', 'manual', 'waste_return'],
         required: [true, 'Reference type is required'],
     },
     referenceId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        required: false,
-    },
-    unitPrice: {
-        type: Number,
-        default: 0,
-        min: [0, 'Unit price cannot be negative'],
-    },
-    totalCost: {
-        type: Number,
-        default: 0,
-        min: [0, 'Total cost cannot be negative'],
+        type: String,
+        required: [true, 'Reference ID is required'],
     },
     performedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
-        required: [true, 'Performed by user is required'],
+        type: String,
+        required: [true, 'Performed by is required'],
     },
     notes: {
         type: String,
         trim: true,
     },
+    date: {
+        type: Date,
+        default: Date.now,
+    },
 }, {
     timestamps: true,
 });
-inventoryTransactionSchema.index({ inventoryId: 1 });
-inventoryTransactionSchema.index({ projectId: 1, materialId: 1 });
-inventoryTransactionSchema.index({ type: 1 });
-inventoryTransactionSchema.index({ createdAt: -1 });
-const InventoryTransactionModel = mongoose_1.default.models['InventoryTransaction'] ||
-    mongoose_1.default.model('InventoryTransaction', inventoryTransactionSchema);
+inventoryTransactionSchema.index({ inventoryId: 1, date: -1 });
+inventoryTransactionSchema.index({ materialId: 1, date: -1 });
+inventoryTransactionSchema.index({ projectId: 1, type: 1, date: -1 });
+inventoryTransactionSchema.index({ type: 1, date: -1 });
+const InventoryTransactionModel = mongoose_1.default.models['InventoryTransaction'] || mongoose_1.default.model('InventoryTransaction', inventoryTransactionSchema);
 exports.default = InventoryTransactionModel;
 //# sourceMappingURL=InventoryTransaction.model.js.map

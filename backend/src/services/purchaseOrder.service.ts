@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import PurchaseOrder, { IPurchaseOrder } from '../models/PurchaseOrder.model';
 import Project from '../models/Project.model';
 import Supplier from '../models/Supplier.model';
@@ -239,105 +239,114 @@ export const receiveGoods = async (
   input: ReceiveGoodsInput,
   userId: string
 ): Promise<IPurchaseOrder> => {
-  const purchaseOrder = await PurchaseOrder.findById(id);
-  if (!purchaseOrder) {
-    throw new AppError('Purchase order not found', 404);
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  // Business Rule: Goods can only be received on approved or partially_received orders
-  if (
-    purchaseOrder.status !== PO_STATUS.APPROVED &&
-    purchaseOrder.status !== PO_STATUS.PARTIALLY_RECEIVED
-  ) {
-    throw new AppError(
-      `Cannot receive goods on purchase order with status '${purchaseOrder.status}'. Order must be approved first.`,
-      400
-    );
-  }
+  try {
+    const purchaseOrder = await PurchaseOrder.findById(id).session(session);
+    if (!purchaseOrder) {
+      throw new AppError('Purchase order not found', 404);
+    }
 
-  for (const receivedItem of input.items) {
-    const poItem = purchaseOrder.items.find(
-      (item) => item.materialId.toString() === receivedItem.materialId
-    );
-
-    if (!poItem) {
+    // Business Rule: Goods can only be received on approved or partially_received orders
+    if (
+      purchaseOrder.status !== PO_STATUS.APPROVED &&
+      purchaseOrder.status !== PO_STATUS.PARTIALLY_RECEIVED
+    ) {
       throw new AppError(
-        `Material ${receivedItem.materialId} not found in this purchase order`,
+        `Cannot receive goods on purchase order with status '${purchaseOrder.status}'. Order must be approved first.`,
         400
       );
     }
 
-    if (poItem.receivedQuantity + receivedItem.quantity > poItem.quantity) {
-      throw new AppError(
-        `Cannot receive ${receivedItem.quantity} for material ${receivedItem.materialId}. Already received: ${poItem.receivedQuantity}, ordered: ${poItem.quantity}`,
-        400
+    for (const receivedItem of input.items) {
+      const poItem = purchaseOrder.items.find(
+        (item) => item.materialId.toString() === receivedItem.materialId
       );
-    }
 
-    // 1. Update PO item received quantity
-    poItem.receivedQuantity += receivedItem.quantity;
+      if (!poItem) {
+        throw new AppError(
+          `Material ${receivedItem.materialId} not found in this purchase order`,
+          400
+        );
+      }
 
-    // 2. Find or create Inventory record for (projectId, materialId)
-    let inventory = await Inventory.findOne({
-      projectId: purchaseOrder.projectId,
-      materialId: poItem.materialId,
-    });
+      if (poItem.receivedQuantity + receivedItem.quantity > poItem.quantity) {
+        throw new AppError(
+          `Cannot receive ${receivedItem.quantity} for material ${receivedItem.materialId}. Already received: ${poItem.receivedQuantity}, ordered: ${poItem.quantity}`,
+          400
+        );
+      }
 
-    if (!inventory) {
-      inventory = new Inventory({
+      // 1. Update PO item received quantity
+      poItem.receivedQuantity += receivedItem.quantity;
+
+      // 2. Find or create Inventory record for (projectId, materialId)
+      let inventory = await Inventory.findOne({
         projectId: purchaseOrder.projectId,
         materialId: poItem.materialId,
-        currentStock: 0,
-        lastUpdated: new Date(),
-      });
+      }).session(session);
+
+      if (!inventory) {
+        inventory = new Inventory({
+          projectId: purchaseOrder.projectId,
+          materialId: poItem.materialId,
+          currentStock: 0,
+          lastUpdated: new Date(),
+        });
+        await inventory.save({ session });
+      }
+
+      const previousStock = inventory.currentStock;
+      const newStock = previousStock + receivedItem.quantity;
+
+      inventory.currentStock = newStock;
+      inventory.lastUpdated = new Date();
+      await inventory.save({ session });
+
+      // 3. Create InventoryTransaction of type RECEIVE
+      await InventoryTransaction.create([{
+        inventoryId: inventory._id,
+        materialId: poItem.materialId,
+        projectId: purchaseOrder.projectId,
+        type: TRANSACTION_TYPE.RECEIVE,
+        quantity: receivedItem.quantity,
+        balanceAfter: newStock,
+        referenceType: REFERENCE_TYPE.PURCHASE_ORDER,
+        referenceId: purchaseOrder._id,
+        performedBy: userId,
+        notes: `Received via PO ${purchaseOrder.poNumber}`,
+      }], { session });
     }
 
-    const previousStock = inventory.currentStock;
-    const newStock = previousStock + receivedItem.quantity;
+    // 4. Update overall PO status
+    const allReceived = purchaseOrder.items.every(
+      (item) => item.receivedQuantity >= item.quantity
+    );
 
-    inventory.currentStock = newStock;
-    inventory.lastUpdated = new Date();
-    await inventory.save();
+    if (allReceived) {
+      purchaseOrder.status = PO_STATUS.RECEIVED;
+      purchaseOrder.actualDelivery = new Date();
+    } else {
+      purchaseOrder.status = PO_STATUS.PARTIALLY_RECEIVED;
+    }
 
-    // 3. Create InventoryTransaction of type RECEIVE
-    const totalCost = receivedItem.quantity * poItem.unitPrice;
-    await InventoryTransaction.create({
-      inventoryId: inventory._id,
-      materialId: poItem.materialId,
-      projectId: purchaseOrder.projectId,
-      type: TRANSACTION_TYPE.RECEIVE,
-      quantity: receivedItem.quantity,
-      previousStock,
-      newStock,
-      referenceType: REFERENCE_TYPE.PURCHASE_ORDER,
-      referenceId: purchaseOrder._id,
-      unitPrice: poItem.unitPrice,
-      totalCost,
-      performedBy: new Types.ObjectId(userId),
-      notes: `Received via PO ${purchaseOrder.poNumber}`,
-    });
+    await purchaseOrder.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return purchaseOrder.populate([
+      { path: 'projectId', select: 'name code location' },
+      { path: 'supplierId', select: 'name code contactPerson' },
+      { path: 'items.materialId', select: 'name code unit category' },
+      { path: 'approvedBy', select: 'name email role' },
+    ]);
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  // 4. Update overall PO status
-  const allReceived = purchaseOrder.items.every(
-    (item) => item.receivedQuantity >= item.quantity
-  );
-
-  if (allReceived) {
-    purchaseOrder.status = PO_STATUS.RECEIVED;
-    purchaseOrder.actualDelivery = new Date();
-  } else {
-    purchaseOrder.status = PO_STATUS.PARTIALLY_RECEIVED;
-  }
-
-  await purchaseOrder.save();
-
-  return purchaseOrder.populate([
-    { path: 'projectId', select: 'name code location' },
-    { path: 'supplierId', select: 'name code contactPerson' },
-    { path: 'items.materialId', select: 'name code unit category' },
-    { path: 'approvedBy', select: 'name email role' },
-  ]);
 };
 
 export const cancelPurchaseOrder = async (id: string): Promise<IPurchaseOrder> => {
