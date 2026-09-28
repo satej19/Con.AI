@@ -1,0 +1,359 @@
+================================================================================
+CONSTRUCTION MATERIAL MANAGEMENT SYSTEM (Con.AI) - UI REQUIREMENTS & SPECIFICATION
+================================================================================
+Generated for Frontend Development
+Matches 100% of Backend API Endpoints, Enums, Roles, & Data Schemas
+================================================================================
+
+--------------------------------------------------------------------------------
+1. GLOBAL DESIGN SYSTEM & THEME
+--------------------------------------------------------------------------------
+- Theme: Modern Dark / Light Mode with sleek construction/industrial aesthetics
+- Colors:
+  * Primary: Deep Slate / Navy (#0F172A, #1E293B)
+  * Accent / Brand: High-visibility Amber / Industrial Orange (#F59E0B, #EA580C)
+  * Status Colors:
+    - Success (Received, Active, Completed): Emerald (#10B981)
+    - Warning (Low Stock, Planning, On Hold, Partially Received): Amber (#F59E0B)
+    - Danger (Cancelled, Waste, Defective, Overuse): Rose (#F43F5E)
+    - Info / Neutral: Sky (#0EA5E9), Slate (#64748B)
+- Typography: Inter, Outfit, or Plus Jakarta Sans
+- Layout: Responsive Sidebar Navigation with collapsible states, Header with Project Switcher & User Profile dropdown, Breadcrumbs, Toast Notifications (Sonner/Hot-Toast).
+
+--------------------------------------------------------------------------------
+2. USER ROLES & PERMISSION MATRIX (RBAC)
+--------------------------------------------------------------------------------
+Roles:
+1. admin         -> Full access to all modules, user role/status management, projects, POs, inventory, waste, plans, analytics.
+2. manager       -> Access to projects, materials, suppliers, PO creation/approval, inventory review, plans, analytics, reports.
+3. engineer      -> Access to project overview, PO creation (drafts), waste reporting, consumption planning & updates, inventory ledger.
+4. store_keeper  -> Access to PO receiving (GRN), inventory issue & return, waste reporting, stock ledger.
+5. viewer        -> Read-only access to dashboard, inventory, materials, suppliers, projects.
+
+--------------------------------------------------------------------------------
+3. REQUIRED PAGES & DETAILED UI SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+================================================================================
+PAGE 1: AUTHENTICATION
+================================================================================
+Route: /login
+API Endpoints:
+  - POST /api/auth/login
+  - POST /api/auth/register (Admin or public self-onboarding if enabled)
+  - GET  /api/auth/me
+UI Elements:
+  - Login Card with company logo and brand tagline
+  - Email & Password fields with client-side Zod validation
+  - Demo Account Quick Fill Buttons:
+    * "Sign in as Admin"
+    * "Sign in as Manager"
+    * "Sign in as Store Keeper"
+    * "Sign in as Engineer"
+  - Remember me checkbox, Forgot password link
+  - Error alert for invalid credentials or deactivated accounts
+
+================================================================================
+PAGE 2: EXECUTIVE DASHBOARD
+================================================================================
+Route: /dashboard
+API Endpoints:
+  - GET /api/dashboard/summary?projectId=...
+  - GET /api/projects (for global project switcher dropdown in top navbar)
+UI Elements:
+  - Top Bar: Global Project Filter Selector (All Projects vs Specific Project)
+  - KPI Stat Cards (4-6 top metrics):
+    * Total Active Projects (count & status breakdown)
+    * Total Stock Value ($ / ₹ currency formatted)
+    * Low Stock Alerts (badge count with warning indicator)
+    * Pending Purchase Orders (count awaiting approval/receipt)
+    * Monthly Waste Cost Impact ($ / ₹ total with monthly trend delta)
+    * Planned vs Actual Cost Variance ($ / ₹ with % variance pill)
+  - Visual Charts:
+    * Stock Valuation by Category (Donut / Pie Chart)
+    * Monthly Spend & Waste Comparison (Bar Chart)
+    * Purchase Order Status Pipeline (Funnel / Stacked Bar)
+  - Quick Action Banners:
+    * "Issue Material" (Quick Modal)
+    * "Record Waste" (Quick Modal)
+    * "Create Purchase Order" button
+  - Recent Activity Tables (Tabs):
+    * Recent Purchase Orders (PO Number, Supplier, Items, Status, Total)
+    * Recent Waste Incidents (Material, Project, Qty, Reason, Reported By)
+  - Low-Stock Critical Attention Drawer:
+    * Displays items where currentStock <= reorderLevel with quick "Reorder" action
+
+================================================================================
+PAGE 3: PROJECT MANAGEMENT
+================================================================================
+Routes:
+  - /projects (List)
+  - /projects/:id (Detail / Project Hub)
+API Endpoints:
+  - GET    /api/projects (query: page, limit, status, search)
+  - POST   /api/projects (create)
+  - GET    /api/projects/:id (get single)
+  - PATCH  /api/projects/:id (update details, dates, budget)
+  - PATCH  /api/projects/:id/status (state machine: planning -> active -> on_hold -> completed)
+  - GET    /api/dashboard/project/:id (project dashboard stats)
+UI Elements:
+  - Projects List View:
+    * Grid / Table Toggle
+    * Status Filter Chips: All, Planning, Active, On Hold, Completed
+    * Project Cards showing: Code, Name, Location, Status Badge, Budget vs Actual Spend bar, Dates, Manager avatar
+    * "New Project" Modal: Code (immutable once set), Name, Description, Location, Manager select, Budget, Start Date, Expected End Date
+  - Single Project Detail Hub (/projects/:id):
+    * Header with Code, Name, Location, Status transition dropdown (enforcing allowed state machine paths)
+    * Tab 1: Overview (Budget utilization, Timeline progress bar, Manager contact)
+    * Tab 2: Inventory in Site (Current stock of materials linked to this project)
+    * Tab 3: Purchase Orders (POs filtered to this project)
+    * Tab 4: Waste Log (Waste records logged on this site)
+    * Tab 5: Consumption Plans & Variance (Budgeted vs Actual consumption for this project)
+
+================================================================================
+PAGE 4: MATERIAL MASTER CATALOG
+================================================================================
+Route: /materials
+API Endpoints:
+  - GET    /api/materials (query: search, category, unit, page, limit, isActive)
+  - POST   /api/materials (create material)
+  - GET    /api/materials/:id
+  - PATCH  /api/materials/:id (update name, reorder level, unit, description)
+  - DELETE /api/materials/:id (soft delete)
+UI Elements:
+  - Search Bar (Debounced text search against name/code)
+  - Category Filter Pill Group:
+    * cement, steel, aggregate, chemical, pipe, valve, electrical, other
+  - Table Columns:
+    * Code (e.g. MAT-001)
+    * Material Name & Description
+    * Category Badge (color coded)
+    * Unit (kg, ton, litre, metre, piece, bag, cubic_metre, sq_metre)
+    * HSN Code
+    * Reorder Level (Threshold)
+    * Status (Active / Inactive)
+    * Action Menu (Edit, Deactivate / Reactivate)
+  - "Add Material" Modal / Slide-over:
+    * Name, Code (auto-capitalized, immutable), Category (select), Unit (select), HSN code, Reorder Level, Description
+
+================================================================================
+PAGE 5: SUPPLIER MANAGEMENT
+================================================================================
+Route: /suppliers
+API Endpoints:
+  - GET    /api/suppliers (query: search, page, limit, isActive, materialId)
+  - POST   /api/suppliers (create supplier)
+  - GET    /api/suppliers/:id
+  - PATCH  /api/suppliers/:id (update details, materials supplied, rating)
+  - DELETE /api/suppliers/:id (deactivate)
+UI Elements:
+  - Supplier Directory (Cards or Data Table):
+    * Supplier Code (SUP-001), Company Name
+    * Rating (1-5 Star Visual component)
+    * Contact Person, Phone, Email, Address
+    * GST Number
+    * Supplied Materials (Pills populating material names)
+    * Active/Inactive Toggle
+  - "Add Supplier" Modal:
+    * Code, Company Name, Contact Person, Email, Phone, Address, GST, Multi-Select Materials Supplied, Rating
+  - Supplier History Slide-over:
+    * Past PO performance, on-time delivery count, supplied volume
+
+================================================================================
+PAGE 6: PURCHASE ORDERS & PROCUREMENT LIFECYCLE
+================================================================================
+Routes:
+  - /purchase-orders (List & Filters)
+  - /purchase-orders/new (Create PO Form)
+  - /purchase-orders/:id (Detail & Receiving Goods Receipt Note - GRN)
+API Endpoints:
+  - GET    /api/purchase-orders (query: projectId, supplierId, status, page, limit)
+  - POST   /api/purchase-orders (create PO)
+  - GET    /api/purchase-orders/:id
+  - PATCH  /api/purchase-orders/:id (update draft PO items/dates)
+  - PATCH  /api/purchase-orders/:id/status (draft -> approved -> cancelled)
+  - POST   /api/purchase-orders/:id/receive (GRN receipt - increments stock!)
+UI Elements:
+  - PO Pipeline Filter Tabs:
+    * All | Draft | Approved | Partially Received | Received | Cancelled
+  - Purchase Orders Table:
+    * PO Number (PO-2026-0001)
+    * Project Name
+    * Supplier Name
+    * Items Summary (e.g., 3 items)
+    * Total Amount ($ / ₹)
+    * Order Date & Expected Delivery
+    * Status Badge
+  - Create Purchase Order Page / Multi-step Form:
+    * Select Project & Supplier (filtered to materials supplied)
+    * Dynamic Item Rows:
+      - Material Selector (auto-fills unit)
+      - Quantity (min 1)
+      - Unit Price (auto-computes line total)
+      - Add Item / Delete Item button
+    * Order Date, Expected Delivery Date, Notes
+    * Real-time Total Calculation (Subtotal, Tax, Grand Total)
+  - PO Detail & Goods Receipt Workflow (/purchase-orders/:id):
+    * Visual Status Stepper: Draft -> Approved -> In Transit/Partial -> Fully Received
+    * Action Buttons (RBAC sensitive):
+      - Manager/Admin: "Approve PO", "Cancel PO"
+      - Store Keeper: "Receive Goods (GRN)"
+    * "Receive Materials" Modal:
+      - Shows ordered quantity, previously received quantity, and quantity remaining
+      - Input field: "Quantity Received in this Batch"
+      - Generates automated InventoryTransaction of type RECEIVE and updates Inventory.currentStock!
+
+================================================================================
+PAGE 7: INVENTORY & STOCK LEDGER
+================================================================================
+Routes:
+  - /inventory (Current Stock Table)
+  - /inventory/transactions (Audit Ledger / Movement History)
+API Endpoints:
+  - GET  /api/inventory (query: projectId, lowStock=true, page, limit)
+  - GET  /api/inventory/:id
+  - POST /api/inventory/issue (Issue material to site)
+  - POST /api/inventory/return (Return unused material back to store)
+  - GET  /api/inventory/transactions (query: projectId, materialId, type, startDate, endDate, page, limit)
+UI Elements:
+  - View 1: Current Stock on Site (/inventory)
+    * Project Selector Filter
+    * "Low Stock Only" Toggle Switch (Highlights rows with red/amber badges)
+    * Columns: Material Code, Name, Category, Project, Current Stock, Reorder Level, Unit, Status (Healthy / Low / Out of Stock), Last Updated
+    * Quick Action Buttons:
+      - "Issue Material" (Opens Issue Modal)
+      - "Return Material" (Opens Return Modal)
+  - "Issue Material" Modal:
+    * Select Project, Select Material (shows available currentStock in real-time)
+    * Quantity to Issue (validates quantity <= currentStock with error message "Insufficient stock")
+    * Work Order / Notes
+  - "Return Material" Modal:
+    * Select Project, Select Material, Quantity Returned, Reason / Notes
+  - View 2: Inventory Transactions Ledger (/inventory/transactions)
+    * Transaction Type Filter: All | RECEIVE (from PO) | ISSUE (to Site) | RETURN (to Store)
+    * Date Range Picker
+    * Columns: Date/Time, Reference Type & ID, Material, Project, Type Badge, Quantity (+/-), Balance After (Audit Stock Level), Performed By (User name), Notes
+
+================================================================================
+PAGE 8: WASTE MANAGEMENT
+================================================================================
+Route: /waste
+API Endpoints:
+  - GET  /api/waste (query: projectId, materialId, reason, startDate, endDate, page, limit)
+  - POST /api/waste (record waste incident)
+  - GET  /api/waste/:id
+UI Elements:
+  - Top Metric Cards:
+    * Total Cost Lost to Waste ($ / ₹)
+    * Highest Wasted Material by Value
+    * Most Frequent Waste Cause
+  - "Log Waste Incident" Modal:
+    * Project Select, Material Select
+    * Quantity Wasted (number > 0)
+    * Reason Select:
+      - damaged, expired, spillage, defective, overuse, natural_loss, other
+    * Date of incident
+    * Detailed Description / Incident Report notes
+    * Cost Impact preview (auto-computed from latest PO prices)
+  - Waste History Table:
+    * Date, Project, Material Name, Reason Badge, Quantity & Unit, Cost Impact ($ / ₹), Reported By, Description
+  - Breakdown Chart:
+    * Donut Chart: Waste by Cause/Reason
+    * Bar Chart: Waste Impact per Project
+
+================================================================================
+PAGE 9: PLANNED VS ACTUAL CONSUMPTION
+================================================================================
+Route: /consumption
+API Endpoints:
+  - GET   /api/consumption-plans (query: projectId, period, page, limit)
+  - POST  /api/consumption-plans (create budget/plan entry)
+  - PATCH /api/consumption-plans/:id (update actuals)
+  - GET   /api/consumption-plans/:id/variance (single item variance)
+  - GET   /api/consumption-plans/report?projectId=...&period=... (aggregated variance report)
+UI Elements:
+  - Filter Bar: Project Dropdown + Period Selector (e.g. 2026-Q1, 2026-Q2, 2026-Q3, 2026-09)
+  - "New Consumption Plan" Modal:
+    * Project, Material, Period, Planned Quantity, Planned Unit Cost, Notes
+  - Aggregated Variance Summary Bar:
+    * Total Planned Cost vs Total Actual Cost
+    * Net Variance Amount & Net % Variance (Green if within budget, Red if overrun)
+  - Plan vs Actual Comparison Table:
+    * Material Name & Unit
+    * Planned Quantity vs Actual Quantity (with Quantity Variance & % variance progress bar)
+    * Planned Unit Cost vs Actual Unit Cost
+    * Planned Cost vs Actual Cost
+    * Cost Variance ($ / ₹) with Overrun Warning Badges
+    * Action: "Update Actuals" Modal (Edit actualQuantity, actualUnitCost, notes)
+
+================================================================================
+PAGE 10: ANALYTICS & INVENTORY CLASSIFICATION
+================================================================================
+Route: /analytics
+API Endpoints:
+  - GET /api/analytics/cost?projectId=...&startDate=...&endDate=...
+  - GET /api/analytics/abc?projectId=...
+  - GET /api/analytics/sde?projectId=...
+  - GET /api/analytics/eoq?projectId=...
+UI Elements:
+  - Sub-Navigation Tabs:
+    * Tab 1: ABC Analysis (Pareto Classification)
+      - Cumulative consumption curve chart (A: 70%, B: 20%, C: 10%)
+      - Table with Class A, Class B, Class C badges, annual consumption value, cumulative percentage
+      - Strategic recommendations (e.g. "Strict control needed for Class A materials")
+    * Tab 2: SDE Analysis (Scarcity & Procurement Difficulty)
+      - 2x2 Matrix Grid or Color Badge List:
+        * Scarce & Difficult (SD) - Critical Attention
+        * Scarce & Easy (SE)
+        * Available & Difficult (DN)
+        * Available & Easy (NE)
+      - Supplier availability counts and category risk tags
+    * Tab 3: EOQ Calculator (Economic Order Quantity)
+      - Interactive Material Order Optimization Table:
+        * Material Name, Annual Demand (D), Ordering Cost (S), Holding Cost (H), Calculated EOQ, Total Annual Cost
+      - Sliders / inputs to adjust Ordering Cost & Holding Cost % to simulate cost savings
+    * Tab 4: Cost & Waste Efficiency
+      - Total Ordered vs Total Issued vs Total Wasted
+      - Cost Efficiency Scorecard (e.g., 94.2% Efficiency)
+      - Spend by Category Breakdown Chart
+
+================================================================================
+PAGE 11: USER & ROLE MANAGEMENT (Admin Only)
+================================================================================
+Route: /users
+API Endpoints:
+  - GET   /api/users (query: page, limit, role, isActive)
+  - PATCH /api/users/:id/role (admin, manager, engineer, store_keeper, viewer)
+  - PATCH /api/users/:id/status (isActive: true/false)
+UI Elements:
+  - User Directory Table:
+    * Name, Email, Role Badge, Status (Active/Inactive), Joined Date
+  - Role Change Dropdown / Modal (Instant PATCH /api/users/:id/role)
+  - Activate / Deactivate Toggle Switch with confirmation dialog
+  - Add User Modal (Name, Email, Temporary Password, Role)
+
+================================================================================
+4. REUSABLE UI COMPONENTS TO BUILD
+================================================================================
+1. `AppLayout`: Collapsible Sidebar, Header, Breadcrumbs, User Profile Popover, Theme Toggle
+2. `ProjectSelect`: Dropdown to select and switch active project context
+3. `StatCard`: KPI Metric card with title, icon, value, change indicator, and trend pill
+4. `DataTable`: Generic reusable table with pagination, sorting, search filter, and skeleton loading
+5. `StatusBadge`: Dynamic color-mapped badge for PO statuses, Project statuses, and User roles
+6. `ConfirmModal`: Confirmation dialog for irreversible actions (deactivation, cancellations, issue/return)
+7. `QuantityInput`: Numeric input with increment/decrement buttons and unit label attachment
+8. `DateRangePicker`: Calendar date range selector for logs and transactions
+9. `EmptyState`: Clean illustration/icon with call-to-action button when data is empty
+10. `ToastProvider`: Global toast notifications for all API success and error responses
+
+================================================================================
+5. FRONTEND TECH STACK RECOMMENDATION
+================================================================================
+- Framework: React + Vite or Next.js (App Router)
+- Language: TypeScript (strict)
+- Styling: Tailwind CSS or Vanilla Modern CSS Variables + Lucide React Icons
+- State / Data Fetching: TanStack React Query (v5) + Axios or native Fetch
+- Form Handling & Validation: React Hook Form + Zod
+- Charts: Recharts or Chart.js
+- UI Primitives: Radix UI / Shadcn UI or Headless UI
+================================================================================

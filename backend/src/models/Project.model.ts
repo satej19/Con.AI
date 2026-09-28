@@ -26,7 +26,6 @@ const projectSchema = new Schema<IProject>(
     code: {
       type: String,
       required: [true, 'Project code is required'],
-      unique: true,
       trim: true,
       uppercase: true,
       immutable: true,
@@ -44,7 +43,6 @@ const projectSchema = new Schema<IProject>(
       type: String,
       enum: Object.values(PROJECT_STATUS),
       default: PROJECT_STATUS.PLANNING,
-      index: true,
     },
     startDate: {
       type: Date,
@@ -67,7 +65,6 @@ const projectSchema = new Schema<IProject>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Project manager is required'],
-      index: true,
     },
   },
   {

@@ -39,16 +39,15 @@ const authenticate_1 = require("../middleware/authenticate");
 const authorize_1 = require("../middleware/authorize");
 const validate_1 = require("../middleware/validate");
 const waste_validator_1 = require("../validators/waste.validator");
-const auth_validator_1 = require("../validators/auth.validator");
 const wasteController = __importStar(require("../controllers/waste.controller"));
 const router = (0, express_1.Router)();
 // All routes require authentication
 router.use(authenticate_1.authenticate);
 // Create waste record (store_keeper, engineer, admin, manager)
-router.post('/', authorize_1.requireStoreKeeper, (0, validate_1.validateBody)(waste_validator_1.createWasteSchema), (0, asyncHandler_1.asyncHandler)(wasteController.create));
+router.post('/', authorize_1.requireWasteReporter, (0, validate_1.validateBody)(waste_validator_1.createWasteSchema), (0, asyncHandler_1.asyncHandler)(wasteController.create));
 // List waste records (all authenticated users)
 router.get('/', (0, asyncHandler_1.asyncHandler)(wasteController.list));
 // Get single waste record (all authenticated users)
-router.get('/:id', (0, validate_1.validateParams)(auth_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(wasteController.getById));
+router.get('/:id', (0, validate_1.validateParams)(waste_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(wasteController.getById));
 exports.default = router;
 //# sourceMappingURL=waste.routes.js.map

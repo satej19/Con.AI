@@ -9,11 +9,13 @@ const helmet_1 = __importDefault(require("helmet"));
 const env_1 = require("./config/env");
 const db_1 = require("./config/db");
 const errorHandler_1 = require("./middleware/errorHandler");
+const rateLimiter_1 = require("./middleware/rateLimiter");
 const routes_1 = __importDefault(require("./routes"));
 const app = (0, express_1.default)();
 // Security middleware
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)());
+app.use(rateLimiter_1.rateLimiter);
 // Body parsing middleware
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));

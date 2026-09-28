@@ -62,23 +62,19 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
     poNumber: {
       type: String,
       required: [true, 'PO number is required'],
-      unique: true,
       trim: true,
       uppercase: true,
       immutable: true,
-      index: true,
     },
     projectId: {
       type: Schema.Types.ObjectId,
       ref: 'Project',
       required: [true, 'Project is required'],
-      index: true,
     },
     supplierId: {
       type: Schema.Types.ObjectId,
       ref: 'Supplier',
       required: [true, 'Supplier is required'],
-      index: true,
     },
     items: {
       type: [poItemSchema],
@@ -89,7 +85,6 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
       type: String,
       enum: Object.values(PO_STATUS),
       default: PO_STATUS.DRAFT,
-      index: true,
     },
     orderDate: {
       type: Date,
