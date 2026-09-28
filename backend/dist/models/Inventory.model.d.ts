@@ -1,7 +1,7 @@
 import { Document, Model, Types } from 'mongoose';
-export interface IInventory extends Document {
-    materialId: Types.ObjectId;
-    projectId: Types.ObjectId;
+interface IInventory extends Document {
+    materialId: Types.ObjectId | string;
+    projectId: Types.ObjectId | string;
     currentStock: number;
     lastUpdated: Date;
     createdAt: Date;
@@ -9,4 +9,5 @@ export interface IInventory extends Document {
 }
 declare const InventoryModel: Model<IInventory>;
 export default InventoryModel;
+export type { IInventory };
 //# sourceMappingURL=Inventory.model.d.ts.map

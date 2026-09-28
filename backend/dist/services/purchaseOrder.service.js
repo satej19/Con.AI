@@ -1,10 +1,43 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cancelPurchaseOrder = exports.receiveGoods = exports.approvePurchaseOrder = exports.updatePurchaseOrder = exports.getPurchaseOrderById = exports.getAllPurchaseOrders = exports.createPurchaseOrder = void 0;
-const mongoose_1 = require("mongoose");
+const mongoose_1 = __importStar(require("mongoose"));
 const PurchaseOrder_model_1 = __importDefault(require("../models/PurchaseOrder.model"));
 const Project_model_1 = __importDefault(require("../models/Project.model"));
 const Supplier_model_1 = __importDefault(require("../models/Supplier.model"));
@@ -190,77 +223,85 @@ const approvePurchaseOrder = async (id, userId) => {
 };
 exports.approvePurchaseOrder = approvePurchaseOrder;
 const receiveGoods = async (id, input, userId) => {
-    const purchaseOrder = await PurchaseOrder_model_1.default.findById(id);
-    if (!purchaseOrder) {
-        throw new AppError_1.AppError('Purchase order not found', 404);
-    }
-    // Business Rule: Goods can only be received on approved or partially_received orders
-    if (purchaseOrder.status !== constants_1.PO_STATUS.APPROVED &&
-        purchaseOrder.status !== constants_1.PO_STATUS.PARTIALLY_RECEIVED) {
-        throw new AppError_1.AppError(`Cannot receive goods on purchase order with status '${purchaseOrder.status}'. Order must be approved first.`, 400);
-    }
-    for (const receivedItem of input.items) {
-        const poItem = purchaseOrder.items.find((item) => item.materialId.toString() === receivedItem.materialId);
-        if (!poItem) {
-            throw new AppError_1.AppError(`Material ${receivedItem.materialId} not found in this purchase order`, 400);
+    const session = await mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const purchaseOrder = await PurchaseOrder_model_1.default.findById(id).session(session);
+        if (!purchaseOrder) {
+            throw new AppError_1.AppError('Purchase order not found', 404);
         }
-        if (poItem.receivedQuantity + receivedItem.quantity > poItem.quantity) {
-            throw new AppError_1.AppError(`Cannot receive ${receivedItem.quantity} for material ${receivedItem.materialId}. Already received: ${poItem.receivedQuantity}, ordered: ${poItem.quantity}`, 400);
+        // Business Rule: Goods can only be received on approved or partially_received orders
+        if (purchaseOrder.status !== constants_1.PO_STATUS.APPROVED &&
+            purchaseOrder.status !== constants_1.PO_STATUS.PARTIALLY_RECEIVED) {
+            throw new AppError_1.AppError(`Cannot receive goods on purchase order with status '${purchaseOrder.status}'. Order must be approved first.`, 400);
         }
-        // 1. Update PO item received quantity
-        poItem.receivedQuantity += receivedItem.quantity;
-        // 2. Find or create Inventory record for (projectId, materialId)
-        let inventory = await Inventory_model_1.default.findOne({
-            projectId: purchaseOrder.projectId,
-            materialId: poItem.materialId,
-        });
-        if (!inventory) {
-            inventory = new Inventory_model_1.default({
+        for (const receivedItem of input.items) {
+            const poItem = purchaseOrder.items.find((item) => item.materialId.toString() === receivedItem.materialId);
+            if (!poItem) {
+                throw new AppError_1.AppError(`Material ${receivedItem.materialId} not found in this purchase order`, 400);
+            }
+            if (poItem.receivedQuantity + receivedItem.quantity > poItem.quantity) {
+                throw new AppError_1.AppError(`Cannot receive ${receivedItem.quantity} for material ${receivedItem.materialId}. Already received: ${poItem.receivedQuantity}, ordered: ${poItem.quantity}`, 400);
+            }
+            // 1. Update PO item received quantity
+            poItem.receivedQuantity += receivedItem.quantity;
+            // 2. Find or create Inventory record for (projectId, materialId)
+            let inventory = await Inventory_model_1.default.findOne({
                 projectId: purchaseOrder.projectId,
                 materialId: poItem.materialId,
-                currentStock: 0,
-                lastUpdated: new Date(),
-            });
+            }).session(session);
+            if (!inventory) {
+                inventory = new Inventory_model_1.default({
+                    projectId: purchaseOrder.projectId,
+                    materialId: poItem.materialId,
+                    currentStock: 0,
+                    lastUpdated: new Date(),
+                });
+                await inventory.save({ session });
+            }
+            const previousStock = inventory.currentStock;
+            const newStock = previousStock + receivedItem.quantity;
+            inventory.currentStock = newStock;
+            inventory.lastUpdated = new Date();
+            await inventory.save({ session });
+            // 3. Create InventoryTransaction of type RECEIVE
+            await InventoryTransaction_model_1.default.create([{
+                    inventoryId: inventory._id,
+                    materialId: poItem.materialId,
+                    projectId: purchaseOrder.projectId,
+                    type: constants_1.TRANSACTION_TYPE.RECEIVE,
+                    quantity: receivedItem.quantity,
+                    balanceAfter: newStock,
+                    referenceType: constants_1.REFERENCE_TYPE.PURCHASE_ORDER,
+                    referenceId: purchaseOrder._id,
+                    performedBy: userId,
+                    notes: `Received via PO ${purchaseOrder.poNumber}`,
+                }], { session });
         }
-        const previousStock = inventory.currentStock;
-        const newStock = previousStock + receivedItem.quantity;
-        inventory.currentStock = newStock;
-        inventory.lastUpdated = new Date();
-        await inventory.save();
-        // 3. Create InventoryTransaction of type RECEIVE
-        const totalCost = receivedItem.quantity * poItem.unitPrice;
-        await InventoryTransaction_model_1.default.create({
-            inventoryId: inventory._id,
-            materialId: poItem.materialId,
-            projectId: purchaseOrder.projectId,
-            type: constants_1.TRANSACTION_TYPE.RECEIVE,
-            quantity: receivedItem.quantity,
-            previousStock,
-            newStock,
-            referenceType: constants_1.REFERENCE_TYPE.PURCHASE_ORDER,
-            referenceId: purchaseOrder._id,
-            unitPrice: poItem.unitPrice,
-            totalCost,
-            performedBy: new mongoose_1.Types.ObjectId(userId),
-            notes: `Received via PO ${purchaseOrder.poNumber}`,
-        });
+        // 4. Update overall PO status
+        const allReceived = purchaseOrder.items.every((item) => item.receivedQuantity >= item.quantity);
+        if (allReceived) {
+            purchaseOrder.status = constants_1.PO_STATUS.RECEIVED;
+            purchaseOrder.actualDelivery = new Date();
+        }
+        else {
+            purchaseOrder.status = constants_1.PO_STATUS.PARTIALLY_RECEIVED;
+        }
+        await purchaseOrder.save({ session });
+        await session.commitTransaction();
+        session.endSession();
+        return purchaseOrder.populate([
+            { path: 'projectId', select: 'name code location' },
+            { path: 'supplierId', select: 'name code contactPerson' },
+            { path: 'items.materialId', select: 'name code unit category' },
+            { path: 'approvedBy', select: 'name email role' },
+        ]);
     }
-    // 4. Update overall PO status
-    const allReceived = purchaseOrder.items.every((item) => item.receivedQuantity >= item.quantity);
-    if (allReceived) {
-        purchaseOrder.status = constants_1.PO_STATUS.RECEIVED;
-        purchaseOrder.actualDelivery = new Date();
+    catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
     }
-    else {
-        purchaseOrder.status = constants_1.PO_STATUS.PARTIALLY_RECEIVED;
-    }
-    await purchaseOrder.save();
-    return purchaseOrder.populate([
-        { path: 'projectId', select: 'name code location' },
-        { path: 'supplierId', select: 'name code contactPerson' },
-        { path: 'items.materialId', select: 'name code unit category' },
-        { path: 'approvedBy', select: 'name email role' },
-    ]);
 };
 exports.receiveGoods = receiveGoods;
 const cancelPurchaseOrder = async (id) => {

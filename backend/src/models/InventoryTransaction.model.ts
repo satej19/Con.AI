@@ -1,27 +1,18 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
-import {
-  TRANSACTION_TYPE,
-  TransactionType,
-  REFERENCE_TYPE,
-  ReferenceType,
-} from '../config/constants';
 
-export interface IInventoryTransaction extends Document {
+interface IInventoryTransaction extends Document {
   inventoryId: Types.ObjectId;
   materialId: Types.ObjectId;
   projectId: Types.ObjectId;
-  type: TransactionType;
+  type: string;
   quantity: number;
-  previousStock: number;
-  newStock: number;
-  referenceType: ReferenceType;
-  referenceId?: Types.ObjectId | string;
-  unitPrice: number;
-  totalCost: number;
+  balanceAfter: number;
+  referenceType: string;
+  referenceId: Types.ObjectId;
   performedBy: Types.ObjectId;
   notes?: string;
+  date: Date;
   createdAt: Date;
-  updatedAt: Date;
 }
 
 const inventoryTransactionSchema = new Schema<IInventoryTransaction>(
@@ -30,7 +21,6 @@ const inventoryTransactionSchema = new Schema<IInventoryTransaction>(
       type: Schema.Types.ObjectId,
       ref: 'Inventory',
       required: [true, 'Inventory reference is required'],
-      index: true,
     },
     materialId: {
       type: Schema.Types.ObjectId,
@@ -44,50 +34,39 @@ const inventoryTransactionSchema = new Schema<IInventoryTransaction>(
     },
     type: {
       type: String,
-      enum: Object.values(TRANSACTION_TYPE),
+      enum: ['RECEIVE', 'ISSUE', 'RETURN'],
       required: [true, 'Transaction type is required'],
-      index: true,
     },
     quantity: {
       type: Number,
       required: [true, 'Quantity is required'],
-      min: [0.001, 'Quantity must be positive'],
+      min: [1, 'Quantity must be positive'],
     },
-    previousStock: {
+    balanceAfter: {
       type: Number,
-      required: [true, 'Previous stock is required'],
-    },
-    newStock: {
-      type: Number,
-      required: [true, 'New stock is required'],
+      required: [true, 'Balance after is required'],
     },
     referenceType: {
       type: String,
-      enum: Object.values(REFERENCE_TYPE),
+      enum: ['purchase_order', 'manual', 'waste_return'],
       required: [true, 'Reference type is required'],
     },
     referenceId: {
       type: Schema.Types.ObjectId,
-      required: false,
-    },
-    unitPrice: {
-      type: Number,
-      default: 0,
-      min: [0, 'Unit price cannot be negative'],
-    },
-    totalCost: {
-      type: Number,
-      default: 0,
-      min: [0, 'Total cost cannot be negative'],
+      required: [true, 'Reference ID is required'],
     },
     performedBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Performed by user is required'],
+      required: [true, 'Performed by is required'],
     },
     notes: {
       type: String,
       trim: true,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
     },
   },
   {
@@ -95,13 +74,12 @@ const inventoryTransactionSchema = new Schema<IInventoryTransaction>(
   }
 );
 
-inventoryTransactionSchema.index({ inventoryId: 1 });
-inventoryTransactionSchema.index({ projectId: 1, materialId: 1 });
-inventoryTransactionSchema.index({ type: 1 });
-inventoryTransactionSchema.index({ createdAt: -1 });
+inventoryTransactionSchema.index({ inventoryId: 1, date: -1 });
+inventoryTransactionSchema.index({ materialId: 1, date: -1 });
+inventoryTransactionSchema.index({ projectId: 1, type: 1, date: -1 });
+inventoryTransactionSchema.index({ type: 1, date: -1 });
 
-const InventoryTransactionModel: Model<IInventoryTransaction> =
-  mongoose.models['InventoryTransaction'] ||
-  mongoose.model<IInventoryTransaction>('InventoryTransaction', inventoryTransactionSchema);
+const InventoryTransactionModel: Model<IInventoryTransaction> = mongoose.models['InventoryTransaction'] || mongoose.model<IInventoryTransaction>('InventoryTransaction', inventoryTransactionSchema);
 
 export default InventoryTransactionModel;
+export type { IInventoryTransaction };
