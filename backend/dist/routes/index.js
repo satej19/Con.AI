@@ -11,6 +11,8 @@ const supplier_routes_1 = __importDefault(require("./supplier.routes"));
 const user_routes_1 = __importDefault(require("./user.routes"));
 const purchaseOrder_routes_1 = __importDefault(require("./purchaseOrder.routes"));
 const inventory_routes_1 = __importDefault(require("./inventory.routes"));
+const waste_routes_1 = __importDefault(require("./waste.routes"));
+const consumption_routes_1 = __importDefault(require("./consumption.routes"));
 const router = (0, express_1.Router)();
 // Health check endpoint
 router.get('/health', (_req, res) => {
@@ -28,5 +30,7 @@ router.use('/materials', material_routes_1.default);
 router.use('/suppliers', supplier_routes_1.default);
 router.use('/purchase-orders', purchaseOrder_routes_1.default);
 router.use('/inventory', inventory_routes_1.default);
+router.use('/waste', waste_routes_1.default);
+router.use('/consumption-plans', consumption_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

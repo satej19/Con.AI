@@ -36,11 +36,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const inventorySchema = new mongoose_1.Schema({
     materialId: {
-        type: String,
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Material',
         required: [true, 'Material reference is required'],
     },
     projectId: {
-        type: String,
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Project',
         required: [true, 'Project reference is required'],
     },
     currentStock: {

@@ -1,7 +1,7 @@
 import { Document, Model, Types } from 'mongoose';
 interface IInventory extends Document {
-    materialId: Types.ObjectId | string;
-    projectId: Types.ObjectId | string;
+    materialId: Types.ObjectId;
+    projectId: Types.ObjectId;
     currentStock: number;
     lastUpdated: Date;
     createdAt: Date;
