@@ -34,65 +34,52 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const inventoryTransactionSchema = new mongoose_1.Schema({
-    inventoryId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Inventory',
-        required: [true, 'Inventory reference is required'],
-    },
-    materialId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Material',
-        required: [true, 'Material reference is required'],
-    },
+const consumptionPlanSchema = new mongoose_1.Schema({
     projectId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Project',
+        type: String,
         required: [true, 'Project reference is required'],
     },
-    type: {
+    materialId: {
         type: String,
-        enum: ['RECEIVE', 'ISSUE', 'RETURN'],
-        required: [true, 'Transaction type is required'],
+        required: [true, 'Material reference is required'],
     },
-    quantity: {
+    plannedQuantity: {
         type: Number,
-        required: [true, 'Quantity is required'],
-        min: [1, 'Quantity must be positive'],
+        required: [true, 'Planned quantity is required'],
+        min: [0, 'Planned quantity cannot be negative'],
     },
-    balanceAfter: {
+    actualQuantity: {
         type: Number,
-        required: [true, 'Balance after is required'],
+        default: 0,
+        min: [0, 'Actual quantity cannot be negative'],
     },
-    referenceType: {
+    plannedUnitCost: {
+        type: Number,
+        required: [true, 'Planned unit cost is required'],
+        min: [0, 'Planned unit cost cannot be negative'],
+    },
+    actualUnitCost: {
+        type: Number,
+        default: 0,
+        min: [0, 'Actual unit cost cannot be negative'],
+    },
+    period: {
         type: String,
-        enum: ['purchase_order', 'manual', 'waste_return'],
-        required: [true, 'Reference type is required'],
-    },
-    referenceId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        required: [true, 'Reference ID is required'],
-    },
-    performedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
-        required: [true, 'Performed by is required'],
+        required: [true, 'Period is required'],
     },
     notes: {
         type: String,
         trim: true,
     },
-    date: {
-        type: Date,
-        default: Date.now,
+    createdBy: {
+        type: String,
+        required: [true, 'Created by is required'],
     },
 }, {
     timestamps: true,
 });
-inventoryTransactionSchema.index({ inventoryId: 1, date: -1 });
-inventoryTransactionSchema.index({ materialId: 1, date: -1 });
-inventoryTransactionSchema.index({ projectId: 1, type: 1, date: -1 });
-inventoryTransactionSchema.index({ type: 1, date: -1 });
-const InventoryTransactionModel = mongoose_1.default.models['InventoryTransaction'] || mongoose_1.default.model('InventoryTransaction', inventoryTransactionSchema);
-exports.default = InventoryTransactionModel;
-//# sourceMappingURL=InventoryTransaction.model.js.map
+consumptionPlanSchema.index({ projectId: 1, materialId: 1, period: 1 }, { unique: true });
+consumptionPlanSchema.index({ projectId: 1, period: 1 });
+const ConsumptionPlanModel = mongoose_1.default.models['ConsumptionPlan'] || mongoose_1.default.model('ConsumptionPlan', consumptionPlanSchema);
+exports.default = ConsumptionPlanModel;
+//# sourceMappingURL=ConsumptionPlan.model.js.map

@@ -6,6 +6,8 @@ import supplierRoutes from './supplier.routes';
 import userRoutes from './user.routes';
 import purchaseOrderRoutes from './purchaseOrder.routes';
 import inventoryRoutes from './inventory.routes';
+import wasteRoutes from './waste.routes';
+import consumptionRoutes from './consumption.routes';
 
 const router = Router();
 
@@ -26,5 +28,7 @@ router.use('/materials', materialRoutes);
 router.use('/suppliers', supplierRoutes);
 router.use('/purchase-orders', purchaseOrderRoutes);
 router.use('/inventory', inventoryRoutes);
+router.use('/waste', wasteRoutes);
+router.use('/consumption-plans', consumptionRoutes);
 
 export default router;
