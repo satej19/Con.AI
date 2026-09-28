@@ -44,17 +44,14 @@ const materialSchema = new mongoose_1.Schema({
     code: {
         type: String,
         required: [true, 'Code is required'],
-        unique: true,
         trim: true,
         uppercase: true,
         immutable: true,
-        index: true,
     },
     category: {
         type: String,
         enum: Object.values(constants_1.MATERIAL_CATEGORY),
         required: [true, 'Category is required'],
-        index: true,
     },
     unit: {
         type: String,

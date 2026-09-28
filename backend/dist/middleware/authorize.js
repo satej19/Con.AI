@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireStoreKeeper = exports.requireManager = exports.requireAdmin = exports.authorize = void 0;
+exports.requireWasteReporter = exports.requirePlanner = exports.requireStoreKeeper = exports.requireManager = exports.requireAdmin = exports.authorize = void 0;
 const AppError_1 = require("../utils/AppError");
 const constants_1 = require("../config/constants");
 const authorize = (...allowedRoles) => {
@@ -18,4 +18,6 @@ exports.authorize = authorize;
 exports.requireAdmin = (0, exports.authorize)(constants_1.USER_ROLES.ADMIN);
 exports.requireManager = (0, exports.authorize)(constants_1.USER_ROLES.ADMIN, constants_1.USER_ROLES.MANAGER);
 exports.requireStoreKeeper = (0, exports.authorize)(constants_1.USER_ROLES.ADMIN, constants_1.USER_ROLES.MANAGER, constants_1.USER_ROLES.STORE_KEEPER);
+exports.requirePlanner = (0, exports.authorize)(constants_1.USER_ROLES.ADMIN, constants_1.USER_ROLES.MANAGER, constants_1.USER_ROLES.ENGINEER);
+exports.requireWasteReporter = (0, exports.authorize)(constants_1.USER_ROLES.ADMIN, constants_1.USER_ROLES.MANAGER, constants_1.USER_ROLES.ENGINEER, constants_1.USER_ROLES.STORE_KEEPER);
 //# sourceMappingURL=authorize.js.map

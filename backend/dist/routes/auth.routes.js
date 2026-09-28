@@ -36,13 +36,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const asyncHandler_1 = require("../middleware/asyncHandler");
 const authenticate_1 = require("../middleware/authenticate");
+const rateLimiter_1 = require("../middleware/rateLimiter");
 const validate_1 = require("../middleware/validate");
 const auth_validator_1 = require("../validators/auth.validator");
 const authController = __importStar(require("../controllers/auth.controller"));
 const router = (0, express_1.Router)();
-// Public routes
-router.post('/register', (0, validate_1.validateBody)(auth_validator_1.registerSchema), (0, asyncHandler_1.asyncHandler)(authController.register));
-router.post('/login', (0, validate_1.validateBody)(auth_validator_1.loginSchema), (0, asyncHandler_1.asyncHandler)(authController.login));
+// Public routes with rate limiting
+router.post('/register', rateLimiter_1.authRateLimiter, (0, validate_1.validateBody)(auth_validator_1.registerSchema), (0, asyncHandler_1.asyncHandler)(authController.register));
+router.post('/login', rateLimiter_1.authRateLimiter, (0, validate_1.validateBody)(auth_validator_1.loginSchema), (0, asyncHandler_1.asyncHandler)(authController.login));
 // Protected routes
 router.get('/me', authenticate_1.authenticate, (0, asyncHandler_1.asyncHandler)(authController.getMe));
 exports.default = router;

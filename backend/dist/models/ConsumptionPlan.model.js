@@ -36,11 +36,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const consumptionPlanSchema = new mongoose_1.Schema({
     projectId: {
-        type: String,
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Project',
         required: [true, 'Project reference is required'],
     },
     materialId: {
-        type: String,
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Material',
         required: [true, 'Material reference is required'],
     },
     plannedQuantity: {
@@ -72,7 +74,8 @@ const consumptionPlanSchema = new mongoose_1.Schema({
         trim: true,
     },
     createdBy: {
-        type: String,
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
         required: [true, 'Created by is required'],
     },
 }, {
@@ -80,6 +83,7 @@ const consumptionPlanSchema = new mongoose_1.Schema({
 });
 consumptionPlanSchema.index({ projectId: 1, materialId: 1, period: 1 }, { unique: true });
 consumptionPlanSchema.index({ projectId: 1, period: 1 });
-const ConsumptionPlanModel = mongoose_1.default.models['ConsumptionPlan'] || mongoose_1.default.model('ConsumptionPlan', consumptionPlanSchema);
+const ConsumptionPlanModel = mongoose_1.default.models['ConsumptionPlan'] ||
+    mongoose_1.default.model('ConsumptionPlan', consumptionPlanSchema);
 exports.default = ConsumptionPlanModel;
 //# sourceMappingURL=ConsumptionPlan.model.js.map

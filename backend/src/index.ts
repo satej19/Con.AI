@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { env } from './config/env';
 import { connectDB } from './config/db';
 import { errorHandler } from './middleware/errorHandler';
+import { rateLimiter } from './middleware/rateLimiter';
 import routes from './routes';
 
 const app: Application = express();
@@ -11,6 +12,7 @@ const app: Application = express();
 // Security middleware
 app.use(helmet());
 app.use(cors());
+app.use(rateLimiter);
 
 // Body parsing middleware
 app.use(express.json());

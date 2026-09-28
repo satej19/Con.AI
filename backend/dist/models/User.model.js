@@ -43,10 +43,8 @@ const userSchema = new mongoose_1.Schema({
     email: {
         type: String,
         required: [true, 'Email is required'],
-        unique: true,
         lowercase: true,
         trim: true,
-        index: true,
     },
     password: {
         type: String,
@@ -57,7 +55,6 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         enum: ['admin', 'manager', 'engineer', 'store_keeper', 'viewer'],
         default: 'viewer',
-        index: true,
     },
     isActive: {
         type: Boolean,

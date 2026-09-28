@@ -29,17 +29,14 @@ const materialSchema = new Schema<IMaterial>(
     code: {
       type: String,
       required: [true, 'Code is required'],
-      unique: true,
       trim: true,
       uppercase: true,
       immutable: true,
-      index: true,
     },
     category: {
       type: String,
       enum: Object.values(MATERIAL_CATEGORY),
       required: [true, 'Category is required'],
-      index: true,
     },
     unit: {
       type: String,

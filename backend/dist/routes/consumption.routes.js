@@ -40,13 +40,12 @@ const authenticate_1 = require("../middleware/authenticate");
 const authorize_1 = require("../middleware/authorize");
 const validate_1 = require("../middleware/validate");
 const consumption_validator_1 = require("../validators/consumption.validator");
-const auth_validator_1 = require("../validators/auth.validator");
 const consumptionController = __importStar(require("../controllers/consumption.controller"));
 const router = (0, express_1.Router)();
 // All routes require authentication
 router.use(authenticate_1.authenticate);
 // Create consumption plan (admin, manager, engineer)
-router.post('/', authorize_1.requireManager, (0, validate_1.validateBody)(consumption_validator_1.createConsumptionPlanSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.create));
+router.post('/', authorize_1.requirePlanner, (0, validate_1.validateBody)(consumption_validator_1.createConsumptionPlanSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.create));
 // List consumption plans (all authenticated users)
 router.get('/', (0, validate_1.validateQuery)(zod_1.z.object({
     projectId: zod_1.z.string().optional(),
@@ -55,11 +54,11 @@ router.get('/', (0, validate_1.validateQuery)(zod_1.z.object({
     limit: zod_1.z.string().optional(),
 })), (0, asyncHandler_1.asyncHandler)(consumptionController.list));
 // Get single consumption plan (all authenticated users)
-router.get('/:id', (0, validate_1.validateParams)(auth_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.getById));
+router.get('/:id', (0, validate_1.validateParams)(consumption_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.getById));
 // Update consumption plan (admin, manager, engineer)
-router.patch('/:id', authorize_1.requireManager, (0, validate_1.validateParams)(auth_validator_1.idParamSchema), (0, validate_1.validateBody)(consumption_validator_1.updateConsumptionPlanSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.update));
+router.patch('/:id', authorize_1.requirePlanner, (0, validate_1.validateParams)(consumption_validator_1.idParamSchema), (0, validate_1.validateBody)(consumption_validator_1.updateConsumptionPlanSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.update));
 // Get variance analysis for single plan (all authenticated users)
-router.get('/:id/variance', (0, validate_1.validateParams)(auth_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.getVariance));
+router.get('/:id/variance', (0, validate_1.validateParams)(consumption_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.getVariance));
 // Get aggregated variance report (all authenticated users)
 router.get('/report', (0, validate_1.validateQuery)(zod_1.z.object({
     projectId: zod_1.z.string(),

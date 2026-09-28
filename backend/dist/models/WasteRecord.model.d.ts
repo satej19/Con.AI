@@ -1,12 +1,12 @@
 import { Document, Model, Types } from 'mongoose';
 interface IWasteRecord extends Document {
-    materialId: Types.ObjectId | string;
-    projectId: Types.ObjectId | string;
+    materialId: Types.ObjectId;
+    projectId: Types.ObjectId;
     quantity: number;
     reason: string;
     description?: string;
     date: Date;
-    reportedBy: Types.ObjectId | string;
+    reportedBy: Types.ObjectId;
     costImpact: number;
     createdAt: Date;
 }

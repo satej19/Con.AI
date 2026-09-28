@@ -66,23 +66,19 @@ const purchaseOrderSchema = new mongoose_1.Schema({
     poNumber: {
         type: String,
         required: [true, 'PO number is required'],
-        unique: true,
         trim: true,
         uppercase: true,
         immutable: true,
-        index: true,
     },
     projectId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'Project',
         required: [true, 'Project is required'],
-        index: true,
     },
     supplierId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'Supplier',
         required: [true, 'Supplier is required'],
-        index: true,
     },
     items: {
         type: [poItemSchema],
@@ -93,7 +89,6 @@ const purchaseOrderSchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(constants_1.PO_STATUS),
         default: constants_1.PO_STATUS.DRAFT,
-        index: true,
     },
     orderDate: {
         type: Date,

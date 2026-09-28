@@ -44,7 +44,6 @@ const projectSchema = new mongoose_1.Schema({
     code: {
         type: String,
         required: [true, 'Project code is required'],
-        unique: true,
         trim: true,
         uppercase: true,
         immutable: true,
@@ -62,7 +61,6 @@ const projectSchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(constants_1.PROJECT_STATUS),
         default: constants_1.PROJECT_STATUS.PLANNING,
-        index: true,
     },
     startDate: {
         type: Date,
@@ -85,7 +83,6 @@ const projectSchema = new mongoose_1.Schema({
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',
         required: [true, 'Project manager is required'],
-        index: true,
     },
 }, {
     timestamps: true,

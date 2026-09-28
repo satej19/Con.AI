@@ -43,11 +43,9 @@ const supplierSchema = new mongoose_1.Schema({
     code: {
         type: String,
         required: [true, 'Code is required'],
-        unique: true,
         trim: true,
         uppercase: true,
         immutable: true,
-        index: true,
     },
     contactPerson: {
         type: String,
