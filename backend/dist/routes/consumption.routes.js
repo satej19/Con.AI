@@ -53,16 +53,16 @@ router.get('/', (0, validate_1.validateQuery)(zod_1.z.object({
     page: zod_1.z.string().optional(),
     limit: zod_1.z.string().optional(),
 })), (0, asyncHandler_1.asyncHandler)(consumptionController.list));
+// Get aggregated variance report (all authenticated users)
+router.get('/report', (0, validate_1.validateQuery)(zod_1.z.object({
+    projectId: zod_1.z.string(),
+    period: zod_1.z.string().optional(),
+})), (0, asyncHandler_1.asyncHandler)(consumptionController.getReport));
 // Get single consumption plan (all authenticated users)
 router.get('/:id', (0, validate_1.validateParams)(consumption_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.getById));
 // Update consumption plan (admin, manager, engineer)
 router.patch('/:id', authorize_1.requirePlanner, (0, validate_1.validateParams)(consumption_validator_1.idParamSchema), (0, validate_1.validateBody)(consumption_validator_1.updateConsumptionPlanSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.update));
 // Get variance analysis for single plan (all authenticated users)
 router.get('/:id/variance', (0, validate_1.validateParams)(consumption_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.getVariance));
-// Get aggregated variance report (all authenticated users)
-router.get('/report', (0, validate_1.validateQuery)(zod_1.z.object({
-    projectId: zod_1.z.string(),
-    period: zod_1.z.string().optional(),
-})), (0, asyncHandler_1.asyncHandler)(consumptionController.getReport));
 exports.default = router;
 //# sourceMappingURL=consumption.routes.js.map

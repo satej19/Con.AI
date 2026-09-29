@@ -10,6 +10,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('7d'),
   BCRYPT_SALT_ROUNDS: z.coerce.number().default(12),
+  CORS_ORIGIN: z.string().default('http://localhost:5173,http://127.0.0.1:5173'),
 });
 
 const validateEnv = () => {

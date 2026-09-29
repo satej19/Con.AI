@@ -11,7 +11,16 @@ const app: Application = express();
 
 // Security middleware
 app.use(helmet());
-app.use(cors());
+const allowedOrigins = env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+app.use(cors({
+  origin: (requestOrigin, callback) => {
+    if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Origin not allowed by CORS'));
+  },
+}));
 app.use(rateLimiter);
 
 // Body parsing middleware

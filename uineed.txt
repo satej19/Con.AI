@@ -355,5 +355,6 @@ UI Elements:
 - State / Data Fetching: TanStack React Query (v5) + Axios or native Fetch
 - Form Handling & Validation: React Hook Form + Zod
 - Charts: Recharts or Chart.js
-- UI Primitives: Radix UI / Shadcn UI or Headless UI
+- UI Primitives: Radix UI / Shadcn U
+I or Headless UI
 ================================================================================

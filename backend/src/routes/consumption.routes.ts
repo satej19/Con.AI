@@ -24,6 +24,12 @@ router.get('/', validateQuery(z.object({
   limit: z.string().optional(),
 })), asyncHandler(consumptionController.list));
 
+// Get aggregated variance report (all authenticated users)
+router.get('/report', validateQuery(z.object({
+  projectId: z.string(),
+  period: z.string().optional(),
+})), asyncHandler(consumptionController.getReport));
+
 // Get single consumption plan (all authenticated users)
 router.get('/:id', validateParams(idParamSchema), asyncHandler(consumptionController.getById));
 
@@ -32,11 +38,5 @@ router.patch('/:id', requirePlanner, validateParams(idParamSchema), validateBody
 
 // Get variance analysis for single plan (all authenticated users)
 router.get('/:id/variance', validateParams(idParamSchema), asyncHandler(consumptionController.getVariance));
-
-// Get aggregated variance report (all authenticated users)
-router.get('/report', validateQuery(z.object({
-  projectId: z.string(),
-  period: z.string().optional(),
-})), asyncHandler(consumptionController.getReport));
 
 export default router;
