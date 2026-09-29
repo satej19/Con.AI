@@ -14,7 +14,16 @@ const routes_1 = __importDefault(require("./routes"));
 const app = (0, express_1.default)();
 // Security middleware
 app.use((0, helmet_1.default)());
-app.use((0, cors_1.default)());
+const allowedOrigins = env_1.env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+app.use((0, cors_1.default)({
+    origin: (requestOrigin, callback) => {
+        if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+            callback(null, true);
+            return;
+        }
+        callback(new Error('Origin not allowed by CORS'));
+    },
+}));
 app.use(rateLimiter_1.rateLimiter);
 // Body parsing middleware
 app.use(express_1.default.json());
