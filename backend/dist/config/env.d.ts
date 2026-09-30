@@ -6,5 +6,6 @@ export declare const env: {
     JWT_EXPIRES_IN: string;
     BCRYPT_SALT_ROUNDS: number;
     CORS_ORIGIN: string;
+    ADMIN_EMAIL?: string | undefined;
 };
 //# sourceMappingURL=env.d.ts.map

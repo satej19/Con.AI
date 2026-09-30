@@ -21,11 +21,20 @@ app.use(cors({
     callback(new Error('Origin not allowed by CORS'));
   },
 }));
-app.use(rateLimiter);
 
-// Body parsing middleware
+// Body parsing middleware (must be before logging)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Request logging (only in development)
+if (env.NODE_ENV === 'development') {
+  app.use((req, _res, next) => {
+    console.log(`→ ${req.method} ${req.path}${req.headers.origin ? ` (origin: ${req.headers.origin})` : ''}`);
+    next();
+  });
+}
+
+app.use(rateLimiter);
 
 // Routes
 app.use('/api', routes);

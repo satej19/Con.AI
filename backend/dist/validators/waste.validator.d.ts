@@ -2,7 +2,7 @@ import { z } from 'zod';
 export declare const createWasteSchema: z.ZodObject<{
     materialId: z.ZodString;
     projectId: z.ZodString;
-    quantity: z.ZodNumber;
+    quantity: z.ZodCoercedNumber<unknown>;
     reason: z.ZodEnum<{
         damaged: "damaged";
         defective: "defective";

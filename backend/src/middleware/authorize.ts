@@ -17,9 +17,8 @@ export const authorize = (...allowedRoles: string[]) => {
   };
 };
 
+// Simplified authorization for MVP
 export const requireAdmin = authorize(USER_ROLES.ADMIN);
 export const requireManager = authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER);
-export const requireStoreKeeper = authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.STORE_KEEPER);
-export const requirePlanner = authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.ENGINEER);
-export const requireWasteReporter = authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.ENGINEER, USER_ROLES.STORE_KEEPER);
+export const requireUser = authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER);
 

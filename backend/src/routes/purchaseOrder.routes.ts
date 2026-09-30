@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { authenticate } from '../middleware/authenticate';
-import { authorize, requireManager, requireStoreKeeper } from '../middleware/authorize';
-import { USER_ROLES } from '../config/constants';
+import { requireManager } from '../middleware/authorize';
 import { validateBody, validateParams, validateQuery } from '../middleware/validate';
 import {
   createPurchaseOrderSchema,
@@ -18,10 +17,10 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
-// Create PO (admin, manager, engineer)
+// Create PO (admin, manager)
 router.post(
   '/',
-  authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.ENGINEER),
+  requireManager,
   validateBody(createPurchaseOrderSchema),
   asyncHandler(purchaseOrderController.create)
 );
@@ -57,10 +56,10 @@ router.patch(
   asyncHandler(purchaseOrderController.approve)
 );
 
-// Receive goods (admin, manager, store_keeper)
+// Receive goods (admin, manager)
 router.post(
   '/:id/receive',
-  requireStoreKeeper,
+  requireManager,
   validateParams(idParamSchema),
   validateBody(receiveGoodsSchema),
   asyncHandler(purchaseOrderController.receive)

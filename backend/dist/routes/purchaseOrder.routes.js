@@ -37,15 +37,14 @@ const express_1 = require("express");
 const asyncHandler_1 = require("../middleware/asyncHandler");
 const authenticate_1 = require("../middleware/authenticate");
 const authorize_1 = require("../middleware/authorize");
-const constants_1 = require("../config/constants");
 const validate_1 = require("../middleware/validate");
 const purchaseOrder_validator_1 = require("../validators/purchaseOrder.validator");
 const purchaseOrderController = __importStar(require("../controllers/purchaseOrder.controller"));
 const router = (0, express_1.Router)();
 // All routes require authentication
 router.use(authenticate_1.authenticate);
-// Create PO (admin, manager, engineer)
-router.post('/', (0, authorize_1.authorize)(constants_1.USER_ROLES.ADMIN, constants_1.USER_ROLES.MANAGER, constants_1.USER_ROLES.ENGINEER), (0, validate_1.validateBody)(purchaseOrder_validator_1.createPurchaseOrderSchema), (0, asyncHandler_1.asyncHandler)(purchaseOrderController.create));
+// Create PO (admin, manager)
+router.post('/', authorize_1.requireManager, (0, validate_1.validateBody)(purchaseOrder_validator_1.createPurchaseOrderSchema), (0, asyncHandler_1.asyncHandler)(purchaseOrderController.create));
 // List POs (all authenticated users)
 router.get('/', (0, validate_1.validateQuery)(purchaseOrder_validator_1.poQuerySchema), (0, asyncHandler_1.asyncHandler)(purchaseOrderController.list));
 // Get single PO (all authenticated users)
@@ -54,8 +53,8 @@ router.get('/:id', (0, validate_1.validateParams)(purchaseOrder_validator_1.idPa
 router.patch('/:id', authorize_1.requireManager, (0, validate_1.validateParams)(purchaseOrder_validator_1.idParamSchema), (0, validate_1.validateBody)(purchaseOrder_validator_1.updatePurchaseOrderSchema), (0, asyncHandler_1.asyncHandler)(purchaseOrderController.update));
 // Approve PO (admin, manager)
 router.patch('/:id/approve', authorize_1.requireManager, (0, validate_1.validateParams)(purchaseOrder_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(purchaseOrderController.approve));
-// Receive goods (admin, manager, store_keeper)
-router.post('/:id/receive', authorize_1.requireStoreKeeper, (0, validate_1.validateParams)(purchaseOrder_validator_1.idParamSchema), (0, validate_1.validateBody)(purchaseOrder_validator_1.receiveGoodsSchema), (0, asyncHandler_1.asyncHandler)(purchaseOrderController.receive));
+// Receive goods (admin, manager)
+router.post('/:id/receive', authorize_1.requireManager, (0, validate_1.validateParams)(purchaseOrder_validator_1.idParamSchema), (0, validate_1.validateBody)(purchaseOrder_validator_1.receiveGoodsSchema), (0, asyncHandler_1.asyncHandler)(purchaseOrderController.receive));
 // Cancel PO (admin, manager) - only if draft
 router.patch('/:id/cancel', authorize_1.requireManager, (0, validate_1.validateParams)(purchaseOrder_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(purchaseOrderController.cancel));
 exports.default = router;

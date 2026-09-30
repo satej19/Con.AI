@@ -28,15 +28,24 @@ interface DashboardReference {
 
 interface BackendDashboardSummary {
   overview: {
+    totalProjects: number;
     activeProjects: number;
+    completedProjects: number;
+    totalMaterials: number;
+    totalSuppliers: number;
+    totalPOs: number;
     approvedPOs: number;
+    receivedPOs: number;
   };
   inventory: {
-    totalStock: number;
+    totalItems: number;
     lowStockItems: number;
+    totalStock: number;
   };
   financial: {
     totalWasteCost: number;
+    totalPlannedCost: number;
+    totalActualCost: number;
     costVariance: number;
   };
   recent: {
@@ -60,6 +69,7 @@ interface BackendDashboardSummary {
       date: string;
     }>;
   };
+  lowStockItems: InventoryItem[];
 }
 
 export const DashboardPage: React.FC = () => {
@@ -75,8 +85,8 @@ export const DashboardPage: React.FC = () => {
     try {
       const params = selectedProjectId !== 'all' ? { projectId: selectedProjectId } : undefined;
       const res = await api.get('/dashboard/summary', params);
-      if (res.data) {
-        const summary = res.data as BackendDashboardSummary;
+      const summary = res.data as BackendDashboardSummary;
+      if (summary) {
         setData({
           activeProjectsCount: summary.overview.activeProjects,
           totalStockValue: summary.inventory.totalStock,
@@ -84,19 +94,19 @@ export const DashboardPage: React.FC = () => {
           pendingPOCount: summary.overview.approvedPOs,
           monthlyWasteCost: summary.financial.totalWasteCost,
           costVariance: summary.financial.costVariance,
-          recentPurchaseOrders: summary.recent.purchaseOrders.map((po) => ({
+          recentPurchaseOrders: (summary.recent.purchaseOrders || []).map((po) => ({
             ...po,
             project: po.projectId,
             supplier: po.supplierId,
-            items: po.items.map((item) => ({ ...item, material: item.materialId })),
+            items: (po.items || []).map((item) => ({ ...item, material: item.materialId })),
           })) as PurchaseOrder[],
-          recentWasteRecords: summary.recent.wasteRecords.map((record) => ({
+          recentWasteRecords: (summary.recent.wasteRecords || []).map((record) => ({
             ...record,
             project: record.projectId,
             material: record.materialId,
             incidentDate: record.date,
           })) as WasteRecord[],
-          lowStockItems: [],
+          lowStockItems: summary.lowStockItems || [],
         });
       }
     } catch (err) {
@@ -275,8 +285,8 @@ export const DashboardPage: React.FC = () => {
                       <StatusBadge status={po.status} size="sm" />
                     </div>
                     <p className="text-xs text-slate-400 mt-1">
-                      {typeof po.supplier === 'object' ? po.supplier.name : 'Supplier'} •{' '}
-                      {typeof po.project === 'object' ? po.project.code : 'Site'}
+                      {typeof po.supplier === 'object' && po.supplier ? po.supplier.name : 'Supplier'} •{' '}
+                      {typeof po.project === 'object' && po.project ? po.project.code : 'Site'}
                     </p>
                   </div>
                   <div className="text-right">

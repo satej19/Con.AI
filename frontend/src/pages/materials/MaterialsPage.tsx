@@ -28,7 +28,7 @@ type MaterialFormInput = z.input<typeof materialSchema>;
 async function fetchMaterials(search: string, category: string) {
   const response = await api.get<Material[]>('/materials', { search, category: category || undefined, limit: 100 });
   const payload = response.data;
-  return Array.isArray(payload) ? payload : (payload as unknown as { materials?: Material[] }).materials || [];
+  return Array.isArray(payload) ? payload : [];
 }
 
 export function MaterialsPage() {
@@ -39,7 +39,7 @@ export function MaterialsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const canManage = user && ['admin', 'manager', 'store_keeper'].includes(user.role);
+  const canManage = user && ['admin', 'manager'].includes(user.role);
 
   const materialsQuery = useQuery({
     queryKey: ['materials', search, category],

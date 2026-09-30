@@ -36,6 +36,12 @@ class ApiClient {
         throw new Error(data.message || data.error || `Request failed with status ${response.status}`);
       }
 
+      // Normalize response: if it has a 'data' field, use that as the main data
+      // This handles both direct responses and ApiResponse wrapped responses
+      if (data.data !== undefined) {
+        return data;
+      }
+
       return data;
     } catch (error: any) {
       console.error(`API Error on ${endpoint}:`, error);

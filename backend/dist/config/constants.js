@@ -1,13 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MAX_LIMIT = exports.DEFAULT_LIMIT = exports.DEFAULT_PAGE = exports.WASTE_REASON = exports.REFERENCE_TYPE = exports.TRANSACTION_TYPE = exports.PO_STATUS = exports.MATERIAL_UNIT = exports.MATERIAL_CATEGORY = exports.PROJECT_STATUS = exports.USER_ROLES = void 0;
-// User Roles
+// User Roles - Simplified for MVP
 exports.USER_ROLES = {
     ADMIN: 'admin',
     MANAGER: 'manager',
-    ENGINEER: 'engineer',
-    STORE_KEEPER: 'store_keeper',
-    VIEWER: 'viewer',
+    USER: 'user',
 };
 // Project Status
 exports.PROJECT_STATUS = {

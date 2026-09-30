@@ -4,8 +4,18 @@ exports.errorHandler = void 0;
 const AppError_1 = require("../utils/AppError");
 const ApiResponse_1 = require("../utils/ApiResponse");
 const zod_1 = require("zod");
-const errorHandler = (err, _req, res, _next) => {
-    console.error('Error:', err);
+const errorHandler = (err, req, res, _next) => {
+    const isOperationalError = err instanceof AppError_1.AppError;
+    const statusCode = isOperationalError ? err.statusCode : 500;
+    // Only log stack traces for unexpected server errors
+    if (!isOperationalError || statusCode >= 500) {
+        console.error(`❌ ${req.method} ${req.path} — ${err.message}`);
+        console.error(err.stack);
+    }
+    else if (statusCode >= 400) {
+        // Brief log for auth/validation errors — no stack needed
+        console.warn(`⚠️  ${req.method} ${req.path} → ${statusCode}: ${err.message}`);
+    }
     if (err instanceof AppError_1.AppError) {
         ApiResponse_1.ApiResponse.error(res, err.statusCode, err.message);
         return;

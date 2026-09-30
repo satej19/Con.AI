@@ -22,6 +22,7 @@ export const ProjectsPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // New Project Form State
@@ -47,6 +48,7 @@ export const ProjectsPage: React.FC = () => {
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setCreateError(null);
     try {
       await api.post('/projects', {
         ...formData,
@@ -65,7 +67,7 @@ export const ProjectsPage: React.FC = () => {
       });
       await refreshProjects();
     } catch (err: any) {
-      alert(err.message || 'Failed to create project');
+      setCreateError(err.message || 'Failed to create project');
     } finally {
       setLoading(false);
     }

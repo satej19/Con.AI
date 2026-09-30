@@ -45,13 +45,13 @@ const router = (0, express_1.Router)();
 router.use(authenticate_1.authenticate);
 // List inventory (all authenticated users)
 router.get('/', (0, asyncHandler_1.asyncHandler)(inventoryController.list));
-// Get single inventory item (all authenticated users)
-router.get('/:id', (0, validate_1.validateParams)(inventory_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(inventoryController.getById));
-// Issue material (store_keeper, admin, manager)
-router.post('/issue', authorize_1.requireStoreKeeper, (0, validate_1.validateBody)(inventory_validator_1.issueMaterialSchema), (0, asyncHandler_1.asyncHandler)(inventoryController.issue));
-// Return material (store_keeper, admin, manager)
-router.post('/return', authorize_1.requireStoreKeeper, (0, validate_1.validateBody)(inventory_validator_1.returnMaterialSchema), (0, asyncHandler_1.asyncHandler)(inventoryController.returnMaterial));
 // List transactions (all authenticated users)
 router.get('/transactions', (0, asyncHandler_1.asyncHandler)(inventoryController.listTransactions));
+// Get single inventory item (all authenticated users)
+router.get('/:id', (0, validate_1.validateParams)(inventory_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(inventoryController.getById));
+// Issue material (admin, manager)
+router.post('/issue', authorize_1.requireManager, (0, validate_1.validateBody)(inventory_validator_1.issueMaterialSchema), (0, asyncHandler_1.asyncHandler)(inventoryController.issue));
+// Return material (admin, manager)
+router.post('/return', authorize_1.requireManager, (0, validate_1.validateBody)(inventory_validator_1.returnMaterialSchema), (0, asyncHandler_1.asyncHandler)(inventoryController.returnMaterial));
 exports.default = router;
 //# sourceMappingURL=inventory.routes.js.map

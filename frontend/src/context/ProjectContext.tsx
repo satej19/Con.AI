@@ -22,8 +22,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsLoading(true);
     try {
       const res = await api.get('/projects', { limit: 100 });
-      if (res.data) {
-        const list = Array.isArray(res.data) ? res.data : res.data.projects || [];
+      const data = res.data;
+      if (data) {
+        const list = Array.isArray(data) ? data : [];
         setProjects(list);
       }
     } catch (err) {

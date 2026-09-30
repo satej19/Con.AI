@@ -4,6 +4,7 @@ import { hashPassword, comparePassword } from '../utils/password';
 import { signToken } from '../utils/jwt';
 import { AppError } from '../utils/AppError';
 import { RegisterInput, LoginInput, UpdateRoleInput, UpdateStatusInput } from '../validators/auth.validator';
+import { env } from '../config/env';
 
 export const registerUser = async (input: RegisterInput): Promise<{ user: Partial<IUser>; token: string }> => {
   const { name, email, password, role } = input;
@@ -13,8 +14,12 @@ export const registerUser = async (input: RegisterInput): Promise<{ user: Partia
     throw new AppError('Email already registered', 409);
   }
 
-  const userCount = await User.countDocuments();
-  const userRole = role || (userCount === 0 ? 'admin' : 'viewer');
+  // If email matches ADMIN_EMAIL, assign admin role (override request)
+  // Otherwise, use requested role or default to 'user'
+  let userRole = role || 'user';
+  if (env.ADMIN_EMAIL && email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase()) {
+    userRole = 'admin';
+  }
 
   const hashedPassword = await hashPassword(password);
 

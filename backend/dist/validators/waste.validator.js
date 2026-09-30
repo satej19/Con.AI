@@ -6,7 +6,7 @@ const wasteReasonEnum = zod_1.z.enum(['damaged', 'expired', 'spillage', 'defecti
 exports.createWasteSchema = zod_1.z.object({
     materialId: zod_1.z.string().min(1, 'Material ID is required'),
     projectId: zod_1.z.string().min(1, 'Project ID is required'),
-    quantity: zod_1.z.number().min(1, 'Quantity must be positive'),
+    quantity: zod_1.z.coerce.number().min(1, 'Quantity must be positive'),
     reason: wasteReasonEnum,
     description: zod_1.z.string().optional(),
     date: zod_1.z.string().or(zod_1.z.date()).optional(),

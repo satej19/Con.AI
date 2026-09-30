@@ -25,12 +25,12 @@ type SupplierFormInput = z.input<typeof supplierSchema>;
 
 async function getSuppliers(search: string) {
   const response = await api.get<Supplier[]>('/suppliers', { search, limit: 100 });
-  return Array.isArray(response.data) ? response.data : (response.data as unknown as { suppliers?: Supplier[] }).suppliers || [];
+  return Array.isArray(response.data) ? response.data : [];
 }
 
 async function getMaterials() {
   const response = await api.get<Material[]>('/materials', { limit: 100, isActive: true });
-  return Array.isArray(response.data) ? response.data : (response.data as unknown as { materials?: Material[] }).materials || [];
+  return Array.isArray(response.data) ? response.data : [];
 }
 
 export function SuppliersPage() {

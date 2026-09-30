@@ -223,8 +223,13 @@ const approvePurchaseOrder = async (id, userId) => {
 };
 exports.approvePurchaseOrder = approvePurchaseOrder;
 const receiveGoods = async (id, input, userId) => {
-    const session = await mongoose_1.default.startSession();
-    session.startTransaction();
+    // Check if we're in a replica set environment
+    const useTransactions = process.env['NODE_ENV'] === 'production';
+    let session = null;
+    if (useTransactions) {
+        session = await mongoose_1.default.startSession();
+        session.startTransaction();
+    }
     try {
         const purchaseOrder = await PurchaseOrder_model_1.default.findById(id).session(session);
         if (!purchaseOrder) {
@@ -257,26 +262,32 @@ const receiveGoods = async (id, input, userId) => {
                     currentStock: 0,
                     lastUpdated: new Date(),
                 });
-                await inventory.save({ session });
+                await inventory.save(session ? { session } : {});
             }
             const previousStock = inventory.currentStock;
             const newStock = previousStock + receivedItem.quantity;
             inventory.currentStock = newStock;
             inventory.lastUpdated = new Date();
-            await inventory.save({ session });
+            await inventory.save(session ? { session } : {});
             // 3. Create InventoryTransaction of type RECEIVE
-            await InventoryTransaction_model_1.default.create([{
-                    inventoryId: inventory._id,
-                    materialId: poItem.materialId,
-                    projectId: purchaseOrder.projectId,
-                    type: constants_1.TRANSACTION_TYPE.RECEIVE,
-                    quantity: receivedItem.quantity,
-                    balanceAfter: newStock,
-                    referenceType: constants_1.REFERENCE_TYPE.PURCHASE_ORDER,
-                    referenceId: purchaseOrder._id,
-                    performedBy: userId,
-                    notes: `Received via PO ${purchaseOrder.poNumber}`,
-                }], { session });
+            const transactionData = {
+                inventoryId: inventory._id,
+                materialId: poItem.materialId,
+                projectId: purchaseOrder.projectId,
+                type: constants_1.TRANSACTION_TYPE.RECEIVE,
+                quantity: receivedItem.quantity,
+                balanceAfter: newStock,
+                referenceType: constants_1.REFERENCE_TYPE.PURCHASE_ORDER,
+                referenceId: purchaseOrder._id,
+                performedBy: userId,
+                notes: `Received via PO ${purchaseOrder.poNumber}`,
+            };
+            if (session) {
+                await InventoryTransaction_model_1.default.create([transactionData], { session });
+            }
+            else {
+                await InventoryTransaction_model_1.default.create(transactionData);
+            }
         }
         // 4. Update overall PO status
         const allReceived = purchaseOrder.items.every((item) => item.receivedQuantity >= item.quantity);
@@ -287,9 +298,11 @@ const receiveGoods = async (id, input, userId) => {
         else {
             purchaseOrder.status = constants_1.PO_STATUS.PARTIALLY_RECEIVED;
         }
-        await purchaseOrder.save({ session });
-        await session.commitTransaction();
-        session.endSession();
+        await purchaseOrder.save(session ? { session } : {});
+        if (useTransactions && session) {
+            await session.commitTransaction();
+            session.endSession();
+        }
         return purchaseOrder.populate([
             { path: 'projectId', select: 'name code location' },
             { path: 'supplierId', select: 'name code contactPerson' },
@@ -298,8 +311,10 @@ const receiveGoods = async (id, input, userId) => {
         ]);
     }
     catch (error) {
-        await session.abortTransaction();
-        session.endSession();
+        if (useTransactions && session) {
+            await session.abortTransaction();
+            session.endSession();
+        }
         throw error;
     }
 };
