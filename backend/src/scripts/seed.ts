@@ -8,7 +8,7 @@ import { USER_ROLES, MATERIAL_CATEGORY, MATERIAL_UNIT } from '../config/constant
 
 const seed = async () => {
   try {
-    await mongoose.connect(process.env['MONGO_URI'] || 'mongodb://localhost:27017/material-management');
+    await mongoose.connect(process.env['MONGO_URI'] || 'mongodb://localhost:27017/material_mgmt');
     console.log('Connected to MongoDB');
 
     // Clear existing data
@@ -20,7 +20,7 @@ const seed = async () => {
     console.log('Cleared existing data');
 
     // Create users
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash('admin123', 12);
     await User.create({
       name: 'Admin User',
       email: 'admin@example.com',
@@ -36,17 +36,10 @@ const seed = async () => {
     });
 
     await User.create({
-      name: 'Store Keeper',
-      email: 'store@example.com',
+      name: 'Regular User',
+      email: 'user@example.com',
       password: hashedPassword,
-      role: USER_ROLES.STORE_KEEPER,
-    });
-
-    await User.create({
-      name: 'Site Engineer',
-      email: 'engineer@example.com',
-      password: hashedPassword,
-      role: USER_ROLES.ENGINEER,
+      role: USER_ROLES.USER,
     });
 
     console.log('Created users');
@@ -180,8 +173,7 @@ const seed = async () => {
     console.log('\nLogin credentials:');
     console.log('Admin: admin@example.com / admin123');
     console.log('Manager: manager@example.com / admin123');
-    console.log('Store Keeper: store@example.com / admin123');
-    console.log('Engineer: engineer@example.com / admin123');
+    console.log('User: user@example.com / admin123');
 
     process.exit(0);
   } catch (error) {

@@ -23,7 +23,7 @@ export const validateQuery = (schema: ZodSchema) => {
       if (!result.success) {
         throw result.error;
       }
-      req.query = result.data as any;
+      Object.assign(req.query, result.data);
       next();
     } catch (error) {
       next(error);

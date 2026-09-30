@@ -50,8 +50,13 @@ export const getInventoryById = async (id: string): Promise<IInventory> => {
 };
 
 export const issueMaterial = async (input: IssueMaterialInput, userId: string): Promise<IInventory> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const useTransactions = process.env['NODE_ENV'] === 'production';
+  let session = null;
+  
+  if (useTransactions) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+  }
 
   try {
     const material = await Material.findById(input.materialId).session(session);
@@ -79,9 +84,9 @@ export const issueMaterial = async (input: IssueMaterialInput, userId: string): 
 
     inventory.currentStock -= input.quantity;
     inventory.lastUpdated = new Date();
-    await inventory.save({ session });
+    await inventory.save(session ? { session } : {});
 
-    await InventoryTransaction.create([{
+    const transactionData = {
       inventoryId: inventory._id,
       materialId: input.materialId,
       projectId: input.projectId,
@@ -93,10 +98,18 @@ export const issueMaterial = async (input: IssueMaterialInput, userId: string): 
       performedBy: userId,
       notes: input.notes,
       date: new Date(),
-    }], { session });
+    };
+    
+    if (session) {
+      await InventoryTransaction.create([transactionData], { session });
+    } else {
+      await InventoryTransaction.create(transactionData);
+    }
 
-    await session.commitTransaction();
-    session.endSession();
+    if (useTransactions && session) {
+      await session.commitTransaction();
+      session.endSession();
+    }
 
     const updatedInventory = await Inventory.findById(inventory._id)
       .populate('materialId', 'name code unit category')
@@ -104,15 +117,22 @@ export const issueMaterial = async (input: IssueMaterialInput, userId: string): 
 
     return updatedInventory as IInventory;
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (useTransactions && session) {
+      await session.abortTransaction();
+      session.endSession();
+    }
     throw error;
   }
 };
 
 export const returnMaterial = async (input: ReturnMaterialInput, userId: string): Promise<IInventory> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const useTransactions = process.env['NODE_ENV'] === 'production';
+  let session = null;
+  
+  if (useTransactions) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+  }
 
   try {
     const material = await Material.findById(input.materialId).session(session);
@@ -131,13 +151,18 @@ export const returnMaterial = async (input: ReturnMaterialInput, userId: string)
     }).session(session);
 
     if (!inventory) {
-      const createdInventory = await Inventory.create([{
+      const inventoryData = {
         materialId: input.materialId,
         projectId: input.projectId,
         currentStock: 0,
         lastUpdated: new Date(),
-      }], { session });
-      inventory = createdInventory[0] as any;
+      };
+      if (session) {
+        const createdInventory = await Inventory.create([inventoryData], { session });
+        inventory = createdInventory[0] as any;
+      } else {
+        inventory = await Inventory.create(inventoryData);
+      }
     }
 
     if (!inventory) {
@@ -146,9 +171,9 @@ export const returnMaterial = async (input: ReturnMaterialInput, userId: string)
 
     inventory.currentStock += input.quantity;
     inventory.lastUpdated = new Date();
-    await inventory.save({ session });
+    await inventory.save(session ? { session } : {});
 
-    await InventoryTransaction.create([{
+    const transactionData = {
       inventoryId: inventory._id,
       materialId: input.materialId,
       projectId: input.projectId,
@@ -160,10 +185,18 @@ export const returnMaterial = async (input: ReturnMaterialInput, userId: string)
       performedBy: userId,
       notes: input.notes,
       date: new Date(),
-    }], { session });
+    };
+    
+    if (session) {
+      await InventoryTransaction.create([transactionData], { session });
+    } else {
+      await InventoryTransaction.create(transactionData);
+    }
 
-    await session.commitTransaction();
-    session.endSession();
+    if (useTransactions && session) {
+      await session.commitTransaction();
+      session.endSession();
+    }
 
     const updatedInventory = await Inventory.findById(inventory._id)
       .populate('materialId', 'name code unit category')
@@ -171,8 +204,10 @@ export const returnMaterial = async (input: ReturnMaterialInput, userId: string)
 
     return updatedInventory as IInventory;
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (useTransactions && session) {
+      await session.abortTransaction();
+      session.endSession();
+    }
     throw error;
   }
 };

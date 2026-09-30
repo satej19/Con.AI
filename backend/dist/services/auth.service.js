@@ -8,14 +8,19 @@ const User_model_1 = __importDefault(require("../models/User.model"));
 const password_1 = require("../utils/password");
 const jwt_1 = require("../utils/jwt");
 const AppError_1 = require("../utils/AppError");
+const env_1 = require("../config/env");
 const registerUser = async (input) => {
     const { name, email, password, role } = input;
     const existingUser = await User_model_1.default.findOne({ email });
     if (existingUser) {
         throw new AppError_1.AppError('Email already registered', 409);
     }
-    const userCount = await User_model_1.default.countDocuments();
-    const userRole = role || (userCount === 0 ? 'admin' : 'viewer');
+    // If email matches ADMIN_EMAIL, assign admin role (override request)
+    // Otherwise, use requested role or default to 'user'
+    let userRole = role || 'user';
+    if (env_1.env.ADMIN_EMAIL && email.toLowerCase() === env_1.env.ADMIN_EMAIL.toLowerCase()) {
+        userRole = 'admin';
+    }
     const hashedPassword = await (0, password_1.hashPassword)(password);
     const user = await User_model_1.default.create({
         name,

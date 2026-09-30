@@ -5,10 +5,8 @@ export declare const registerSchema: z.ZodObject<{
     password: z.ZodString;
     role: z.ZodOptional<z.ZodEnum<{
         admin: "admin";
-        engineer: "engineer";
         manager: "manager";
-        store_keeper: "store_keeper";
-        viewer: "viewer";
+        user: "user";
     }>>;
 }, z.core.$strip>;
 export declare const loginSchema: z.ZodObject<{
@@ -18,10 +16,8 @@ export declare const loginSchema: z.ZodObject<{
 export declare const updateRoleSchema: z.ZodObject<{
     role: z.ZodEnum<{
         admin: "admin";
-        engineer: "engineer";
         manager: "manager";
-        store_keeper: "store_keeper";
-        viewer: "viewer";
+        user: "user";
     }>;
 }, z.core.$strip>;
 export declare const updateStatusSchema: z.ZodObject<{

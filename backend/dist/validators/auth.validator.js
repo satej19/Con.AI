@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.idParamSchema = exports.updateStatusSchema = exports.updateRoleSchema = exports.loginSchema = exports.registerSchema = void 0;
 const zod_1 = require("zod");
-const roleEnum = zod_1.z.enum(['admin', 'manager', 'engineer', 'store_keeper', 'viewer']);
+const roleEnum = zod_1.z.enum(['admin', 'manager', 'user']);
 exports.registerSchema = zod_1.z.object({
     name: zod_1.z.string().min(2, 'Name must be at least 2 characters'),
     email: zod_1.z.string().email('Invalid email format'),

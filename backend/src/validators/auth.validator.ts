@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const roleEnum = z.enum(['admin', 'manager', 'engineer', 'store_keeper', 'viewer']);
+const roleEnum = z.enum(['admin', 'manager', 'user']);
 
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),

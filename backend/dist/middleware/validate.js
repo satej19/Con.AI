@@ -24,7 +24,7 @@ const validateQuery = (schema) => {
             if (!result.success) {
                 throw result.error;
             }
-            req.query = result.data;
+            Object.assign(req.query, result.data);
             next();
         }
         catch (error) {

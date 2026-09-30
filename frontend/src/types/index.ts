@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'manager' | 'engineer' | 'store_keeper' | 'viewer';
+export type UserRole = 'admin' | 'manager' | 'user';
 
 export interface User {
   _id: string;
@@ -125,7 +125,7 @@ export interface PurchaseOrder {
   totalAmount: number;
   status: PurchaseOrderStatus;
   orderDate: string;
-  expectedDeliveryDate?: string;
+  expectedDelivery?: string;
   notes?: string;
   createdBy?: {
     _id: string;

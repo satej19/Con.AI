@@ -12,7 +12,7 @@ const Supplier_model_1 = __importDefault(require("../models/Supplier.model"));
 const constants_1 = require("../config/constants");
 const seed = async () => {
     try {
-        await mongoose_1.default.connect(process.env['MONGO_URI'] || 'mongodb://localhost:27017/material-management');
+        await mongoose_1.default.connect(process.env['MONGO_URI'] || 'mongodb://localhost:27017/material_mgmt');
         console.log('Connected to MongoDB');
         // Clear existing data
         await User_model_1.default.deleteMany({});
@@ -21,7 +21,7 @@ const seed = async () => {
         await Supplier_model_1.default.deleteMany({});
         console.log('Cleared existing data');
         // Create users
-        const hashedPassword = await bcryptjs_1.default.hash('admin123', 10);
+        const hashedPassword = await bcryptjs_1.default.hash('admin123', 12);
         await User_model_1.default.create({
             name: 'Admin User',
             email: 'admin@example.com',
@@ -35,16 +35,10 @@ const seed = async () => {
             role: constants_1.USER_ROLES.MANAGER,
         });
         await User_model_1.default.create({
-            name: 'Store Keeper',
-            email: 'store@example.com',
+            name: 'Regular User',
+            email: 'user@example.com',
             password: hashedPassword,
-            role: constants_1.USER_ROLES.STORE_KEEPER,
-        });
-        await User_model_1.default.create({
-            name: 'Site Engineer',
-            email: 'engineer@example.com',
-            password: hashedPassword,
-            role: constants_1.USER_ROLES.ENGINEER,
+            role: constants_1.USER_ROLES.USER,
         });
         console.log('Created users');
         // Create projects
@@ -169,8 +163,7 @@ const seed = async () => {
         console.log('\nLogin credentials:');
         console.log('Admin: admin@example.com / admin123');
         console.log('Manager: manager@example.com / admin123');
-        console.log('Store Keeper: store@example.com / admin123');
-        console.log('Engineer: engineer@example.com / admin123');
+        console.log('User: user@example.com / admin123');
         process.exit(0);
     }
     catch (error) {

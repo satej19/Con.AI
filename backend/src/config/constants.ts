@@ -1,10 +1,8 @@
-// User Roles
+// User Roles - Simplified for MVP
 export const USER_ROLES = {
   ADMIN: 'admin',
   MANAGER: 'manager',
-  ENGINEER: 'engineer',
-  STORE_KEEPER: 'store_keeper',
-  VIEWER: 'viewer',
+  USER: 'user',
 } as const;
 
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];

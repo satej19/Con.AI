@@ -239,8 +239,14 @@ export const receiveGoods = async (
   input: ReceiveGoodsInput,
   userId: string
 ): Promise<IPurchaseOrder> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // Check if we're in a replica set environment
+  const useTransactions = process.env['NODE_ENV'] === 'production';
+  let session = null;
+  
+  if (useTransactions) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+  }
 
   try {
     const purchaseOrder = await PurchaseOrder.findById(id).session(session);
@@ -294,7 +300,7 @@ export const receiveGoods = async (
           currentStock: 0,
           lastUpdated: new Date(),
         });
-        await inventory.save({ session });
+        await inventory.save(session ? { session } : {});
       }
 
       const previousStock = inventory.currentStock;
@@ -302,10 +308,10 @@ export const receiveGoods = async (
 
       inventory.currentStock = newStock;
       inventory.lastUpdated = new Date();
-      await inventory.save({ session });
+      await inventory.save(session ? { session } : {});
 
       // 3. Create InventoryTransaction of type RECEIVE
-      await InventoryTransaction.create([{
+      const transactionData = {
         inventoryId: inventory._id,
         materialId: poItem.materialId,
         projectId: purchaseOrder.projectId,
@@ -316,7 +322,13 @@ export const receiveGoods = async (
         referenceId: purchaseOrder._id,
         performedBy: userId,
         notes: `Received via PO ${purchaseOrder.poNumber}`,
-      }], { session });
+      };
+      
+      if (session) {
+        await InventoryTransaction.create([transactionData], { session });
+      } else {
+        await InventoryTransaction.create(transactionData);
+      }
     }
 
     // 4. Update overall PO status
@@ -331,10 +343,12 @@ export const receiveGoods = async (
       purchaseOrder.status = PO_STATUS.PARTIALLY_RECEIVED;
     }
 
-    await purchaseOrder.save({ session });
+    await purchaseOrder.save(session ? { session } : {});
 
-    await session.commitTransaction();
-    session.endSession();
+    if (useTransactions && session) {
+      await session.commitTransaction();
+      session.endSession();
+    }
 
     return purchaseOrder.populate([
       { path: 'projectId', select: 'name code location' },
@@ -343,8 +357,10 @@ export const receiveGoods = async (
       { path: 'approvedBy', select: 'name email role' },
     ]);
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (useTransactions && session) {
+      await session.abortTransaction();
+      session.endSession();
+    }
     throw error;
   }
 };

@@ -43,13 +43,13 @@ const materialController = __importStar(require("../controllers/material.control
 const router = (0, express_1.Router)();
 // All routes require authentication
 router.use(authenticate_1.authenticate);
-// Create material (admin, manager, store_keeper)
-router.post('/', authorize_1.requireStoreKeeper, (0, validate_1.validateBody)(material_validator_1.createMaterialSchema), (0, asyncHandler_1.asyncHandler)(materialController.create));
+// Create material (admin, manager)
+router.post('/', authorize_1.requireManager, (0, validate_1.validateBody)(material_validator_1.createMaterialSchema), (0, asyncHandler_1.asyncHandler)(materialController.create));
 // List materials (all authenticated users)
 router.get('/', (0, validate_1.validateQuery)(material_validator_1.materialQuerySchema), (0, asyncHandler_1.asyncHandler)(materialController.list));
 // Get single material (all authenticated users)
 router.get('/:id', (0, validate_1.validateParams)(material_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(materialController.getById));
-// Update material (admin, manager, store_keeper)
-router.patch('/:id', authorize_1.requireStoreKeeper, (0, validate_1.validateParams)(material_validator_1.idParamSchema), (0, validate_1.validateBody)(material_validator_1.updateMaterialSchema), (0, asyncHandler_1.asyncHandler)(materialController.update));
+// Update material (admin, manager)
+router.patch('/:id', authorize_1.requireManager, (0, validate_1.validateParams)(material_validator_1.idParamSchema), (0, validate_1.validateBody)(material_validator_1.updateMaterialSchema), (0, asyncHandler_1.asyncHandler)(materialController.update));
 exports.default = router;
 //# sourceMappingURL=material.routes.js.map

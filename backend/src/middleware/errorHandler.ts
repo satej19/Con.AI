@@ -5,11 +5,21 @@ import { ZodError } from 'zod';
 
 export const errorHandler = (
   err: Error,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ): void => {
-  console.error('Error:', err);
+  const isOperationalError = err instanceof AppError;
+  const statusCode = isOperationalError ? (err as AppError).statusCode : 500;
+
+  // Only log stack traces for unexpected server errors
+  if (!isOperationalError || statusCode >= 500) {
+    console.error(`❌ ${req.method} ${req.path} — ${err.message}`);
+    console.error(err.stack);
+  } else if (statusCode >= 400) {
+    // Brief log for auth/validation errors — no stack needed
+    console.warn(`⚠️  ${req.method} ${req.path} → ${statusCode}: ${err.message}`);
+  }
 
   if (err instanceof AppError) {
     ApiResponse.error(res, err.statusCode, err.message);

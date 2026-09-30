@@ -56,7 +56,20 @@ export const getDashboardSummary = async (projectId?: string): Promise<any> => {
   const lowStockItems = await Promise.all(inventoryItems.map(async (item) => {
     const material = await Material.findById(item.materialId);
     if (material && item.currentStock <= material.reorderLevel) {
-      return item;
+      return {
+        _id: item._id,
+        project: item.projectId,
+        material: {
+          _id: material._id,
+          name: material.name,
+          code: material.code,
+          unit: material.unit,
+          category: material.category,
+          reorderLevel: material.reorderLevel,
+        },
+        currentStock: item.currentStock,
+        lastUpdated: item.lastUpdated,
+      };
     }
     return null;
   })).then(items => items.filter(i => i !== null));
@@ -108,6 +121,7 @@ export const getDashboardSummary = async (projectId?: string): Promise<any> => {
       purchaseOrders: recentPOs,
       wasteRecords: recentWaste,
     },
+    lowStockItems,
   };
 };
 

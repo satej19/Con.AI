@@ -1,9 +1,7 @@
 export declare const USER_ROLES: {
     readonly ADMIN: 'admin';
     readonly MANAGER: 'manager';
-    readonly ENGINEER: 'engineer';
-    readonly STORE_KEEPER: 'store_keeper';
-    readonly VIEWER: 'viewer';
+    readonly USER: 'user';
 };
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
 export declare const PROJECT_STATUS: {
