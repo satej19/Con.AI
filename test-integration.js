@@ -162,7 +162,7 @@ async function testAuthAPIs() {
     email: `test${Date.now()}@example.com`,
     password: 'Test123!@#',
     name: 'Test User',
-    role: 'engineer'
+    role: 'user'
   };
   
   const registerResponse = await makeRequest('/auth/register', {

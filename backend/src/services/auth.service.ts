@@ -14,10 +14,19 @@ export const registerUser = async (input: RegisterInput): Promise<{ user: Partia
     throw new AppError('Email already registered', 409);
   }
 
-  // If email matches ADMIN_EMAIL, assign admin role (override request)
-  // Otherwise, use requested role or default to 'user'
-  let userRole = role || 'user';
+  // If email matches ADMIN_EMAIL, assign admin role (override request).
+  // Otherwise cap at 'manager' — admin can never be self-assigned through registration.
+  let userRole: string = role || 'user';
   if (env.ADMIN_EMAIL && email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase()) {
+    userRole = 'admin';
+  } else if (userRole === 'admin') {
+    // Block any attempt to self-register as admin
+    userRole = 'user';
+  }
+
+  // If this is the very first user ever and no ADMIN_EMAIL is set, promote to admin
+  const userCount = await User.countDocuments();
+  if (userCount === 0 && !env.ADMIN_EMAIL) {
     userRole = 'admin';
   }
 

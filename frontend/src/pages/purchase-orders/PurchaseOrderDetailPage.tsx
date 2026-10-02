@@ -19,7 +19,7 @@ export function PurchaseOrderDetailPage() {
   const [receiveError, setReceiveError] = useState<string | null>(null);
   const query = useQuery({ queryKey: ['purchase-order', id], enabled: Boolean(id), queryFn: async () => { const response = await api.get<PurchaseOrder & { projectId?: PurchaseOrder['project']; supplierId?: PurchaseOrder['supplier'] }>(`/purchase-orders/${id}`); const order = response.data; if (!order) throw new Error('Purchase order response was empty.'); return { ...order, project: order.project || order.projectId, supplier: order.supplier || order.supplierId, items: order.items.map((item) => ({ ...item, material: item.material || (item as typeof item & { materialId?: typeof item.material }).materialId })) } as PurchaseOrder; } });
   const receive = useMutation({ mutationFn: (values: ReceiveValues) => api.post(`/purchase-orders/${id}/receive`, values), onSuccess: async () => { setReceiveError(null); await client.invalidateQueries({ queryKey: ['purchase-order', id] }); await client.invalidateQueries({ queryKey: ['inventory'] }); }, onError: (cause) => setReceiveError(cause instanceof Error ? cause.message : 'Unable to record goods receipt.') });
-  const canReceive = user && ['admin', 'manager', 'store_keeper'].includes(user.role);
+  const canReceive = user && ['admin', 'manager', 'user'].includes(user.role);
   if (query.isLoading) return <State text="Loading purchase order..." />;
   if (query.isError || !query.data) return <State text={query.error instanceof Error ? query.error.message : 'Purchase order not found.'} error />;
   const order = query.data;

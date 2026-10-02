@@ -1,12 +1,18 @@
 import { z } from 'zod';
 
+// Roles allowed for self-registration — admin is NOT included
+const publicRoleEnum = z.enum(['user', 'manager']);
+
+// Full role enum used by admin to update roles
 const roleEnum = z.enum(['admin', 'manager', 'user']);
 
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email format'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: roleEnum.optional(),
+  // role is accepted but only 'user' or 'manager' are allowed on self-registration.
+  // The service enforces that the very first user always gets admin regardless.
+  role: publicRoleEnum.optional().default('user'),
 });
 
 export const loginSchema = z.object({

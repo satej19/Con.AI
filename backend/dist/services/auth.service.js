@@ -15,10 +15,19 @@ const registerUser = async (input) => {
     if (existingUser) {
         throw new AppError_1.AppError('Email already registered', 409);
     }
-    // If email matches ADMIN_EMAIL, assign admin role (override request)
-    // Otherwise, use requested role or default to 'user'
+    // If email matches ADMIN_EMAIL, assign admin role (override request).
+    // Otherwise cap at 'manager' — admin can never be self-assigned through registration.
     let userRole = role || 'user';
     if (env_1.env.ADMIN_EMAIL && email.toLowerCase() === env_1.env.ADMIN_EMAIL.toLowerCase()) {
+        userRole = 'admin';
+    }
+    else if (userRole === 'admin') {
+        // Block any attempt to self-register as admin
+        userRole = 'user';
+    }
+    // If this is the very first user ever and no ADMIN_EMAIL is set, promote to admin
+    const userCount = await User_model_1.default.countDocuments();
+    if (userCount === 0 && !env_1.env.ADMIN_EMAIL) {
         userRole = 'admin';
     }
     const hashedPassword = await (0, password_1.hashPassword)(password);

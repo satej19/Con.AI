@@ -146,6 +146,23 @@ button, input {
 }
 
 .input-shell input::placeholder { color: #64748b; }
+
+/* Password show/hide toggle button inside the input shell */
+.password-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 150ms ease;
+}
+.password-toggle:hover { color: #f59e0b; }
+.password-toggle:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; }
 .form-input { width: 100%; border: 1px solid #334155; border-radius: 10px; background: #0b1320; padding: 10px 12px; color: #f8fafc; outline: 0; font-size: 13px; }
 .form-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.13); }
 .field-error { margin: 6px 0 0; color: #fb7185; font-size: 12px; }

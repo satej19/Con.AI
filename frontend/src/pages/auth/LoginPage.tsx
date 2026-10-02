@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, ArrowRight, HardHat, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, HardHat, LockKeyhole, Mail, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +18,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -64,7 +65,21 @@ export function LoginPage() {
           <label className="field-label" htmlFor="password">Password</label>
           <div className={`input-shell ${errors.password ? 'has-error' : ''}`}>
             <LockKeyhole size={18} aria-hidden="true" />
-            <input id="password" type="password" autoComplete="current-password" placeholder="Enter your password" {...register('password')} />
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder="Enter your password"
+              {...register('password')}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="password-toggle"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
           {errors.password && <p className="field-error">{errors.password.message}</p>}
 

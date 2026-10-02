@@ -3,11 +3,10 @@ export declare const registerSchema: z.ZodObject<{
     name: z.ZodString;
     email: z.ZodString;
     password: z.ZodString;
-    role: z.ZodOptional<z.ZodEnum<{
-        admin: "admin";
+    role: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
         manager: "manager";
         user: "user";
-    }>>;
+    }>>>;
 }, z.core.$strip>;
 export declare const loginSchema: z.ZodObject<{
     email: z.ZodString;

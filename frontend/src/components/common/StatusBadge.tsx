@@ -24,10 +24,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
   ) {
     bgClass = 'bg-rose-950/60 text-rose-400 border-rose-800/60';
     dotClass = 'bg-rose-400';
-  } else if (['draft', 'store_keeper', 'engineer', 'spillage', 'other'].includes(normalized)) {
+  } else if (['draft', 'spillage', 'other'].includes(normalized)) {
     bgClass = 'bg-blue-950/60 text-blue-400 border-blue-800/60';
     dotClass = 'bg-blue-400';
-  } else if (['viewer', 'natural_loss'].includes(normalized)) {
+  } else if (['user', 'natural_loss'].includes(normalized)) {
     bgClass = 'bg-purple-950/60 text-purple-400 border-purple-800/60';
     dotClass = 'bg-purple-400';
   }

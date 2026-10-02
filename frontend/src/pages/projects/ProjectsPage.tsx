@@ -207,6 +207,11 @@ export const ProjectsPage: React.FC = () => {
         maxWidth="lg"
       >
         <form onSubmit={handleCreateProject} className="space-y-4">
+          {createError && (
+            <div className="rounded-xl border border-rose-900/60 bg-rose-950/30 p-3 text-xs text-rose-300">
+              {createError}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">

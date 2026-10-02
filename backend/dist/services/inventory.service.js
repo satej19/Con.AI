@@ -67,7 +67,7 @@ const issueMaterial = async (input, userId) => {
             projectId: input.projectId,
         }).session(session);
         if (!inventory) {
-            throw new AppError_1.AppError('No inventory record found for this material and project', 404);
+            throw new AppError_1.AppError('No stock found for this material on this project. Receive goods via a Purchase Order first before issuing.', 404);
         }
         if (inventory.currentStock < input.quantity) {
             throw new AppError_1.AppError('Insufficient stock', 400);

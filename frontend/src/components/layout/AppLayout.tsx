@@ -7,7 +7,6 @@ import {
   Truck,
   ShoppingCart,
   Warehouse,
-  History,
   Trash2,
   TrendingDown,
   BarChart3,
@@ -44,7 +43,6 @@ export const AppLayout: React.FC = () => {
     { label: 'Supplier Directory', path: '/suppliers', icon: Truck },
     { label: 'Purchase Orders', path: '/purchase-orders', icon: ShoppingCart },
     { label: 'Inventory Stock', path: '/inventory', icon: Warehouse },
-    { label: 'Stock Ledger', path: '/inventory/transactions', icon: History },
     { label: 'Waste Incidents', path: '/waste', icon: Trash2 },
     { label: 'Plan vs Actual', path: '/consumption', icon: TrendingDown },
     { label: 'Intelligence & EOQ', path: '/analytics', icon: BarChart3 },
@@ -154,7 +152,7 @@ export const AppLayout: React.FC = () => {
                   {user?.name || 'Guest User'}
                 </p>
                 <div className="mt-0.5">
-                  <StatusBadge status={user?.role || 'viewer'} size="sm" />
+                  <StatusBadge status={user?.role || 'user'} size="sm" />
                 </div>
               </div>
             </div>

@@ -161,9 +161,9 @@ export const getABCClassification = async (projectId: string): Promise<ABCClassi
   let cumulativeValue = 0;
 
   for (const item of results) {
-    item.percentage = (item.annualConsumptionValue / totalValue) * 100;
+    item.percentage = totalValue > 0 ? (item.annualConsumptionValue / totalValue) * 100 : 0;
     cumulativeValue += item.annualConsumptionValue;
-    const cumulativePercentage = (cumulativeValue / totalValue) * 100;
+    const cumulativePercentage = totalValue > 0 ? (cumulativeValue / totalValue) * 100 : 0;
 
     if (cumulativePercentage <= 70) {
       item.classification = 'A';
