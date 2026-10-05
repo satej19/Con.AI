@@ -23,6 +23,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useProject } from '../../context/ProjectContext';
 import { StatusBadge } from '../common/StatusBadge';
+import { AiAssistant } from '../ai/AiAssistant';
 
 export const AppLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -246,6 +247,9 @@ export const AppLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* AI Assistant — floats above all content */}
+      <AiAssistant />
     </div>
   );
 };

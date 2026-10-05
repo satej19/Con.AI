@@ -14,6 +14,9 @@ router.use(authenticate);
 // Create waste record (admin, manager)
 router.post('/', requireManager, validateBody(createWasteSchema), asyncHandler(wasteController.create));
 
+// Recalculate cost impact for all zero-cost records (admin, manager)
+router.post('/recalculate', requireManager, asyncHandler(wasteController.recalculate));
+
 // List waste records (all authenticated users)
 router.get('/', asyncHandler(wasteController.list));
 

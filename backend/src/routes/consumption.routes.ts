@@ -30,6 +30,9 @@ router.get('/report', validateQuery(z.object({
   period: z.string().optional(),
 })), asyncHandler(consumptionController.getReport));
 
+// Sync actuals from inventory transactions + PO data (admin, manager)
+router.post('/:id/sync', requireManager, validateParams(idParamSchema), asyncHandler(consumptionController.sync));
+
 // Get single consumption plan (all authenticated users)
 router.get('/:id', validateParams(idParamSchema), asyncHandler(consumptionController.getById));
 

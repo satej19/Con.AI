@@ -2,13 +2,17 @@ import WasteRecord, { IWasteRecord } from '../models/WasteRecord.model';
 import Material from '../models/Material.model';
 import Project from '../models/Project.model';
 import PurchaseOrder from '../models/PurchaseOrder.model';
+import mongoose from 'mongoose';
 import { AppError } from '../utils/AppError';
 import type { CreateWasteInput } from '../validators/waste.validator';
 import { parsePagination, buildPaginationMeta } from '../utils/pagination';
 
 const calculateAverageUnitPrice = async (materialId: string): Promise<number> => {
+  // Cast to ObjectId for reliable subdocument matching
+  const materialObjectId = new mongoose.Types.ObjectId(materialId);
+
   const purchaseOrders = await PurchaseOrder.find({
-    'items.materialId': materialId,
+    'items.materialId': materialObjectId,
     status: { $in: ['approved', 'partially_received', 'received'] },
   });
 
@@ -107,4 +111,22 @@ export const getWasteRecordById = async (id: string): Promise<IWasteRecord> => {
     throw new AppError('Waste record not found', 404);
   }
   return wasteRecord;
+};
+
+// Recalculates costImpact for all records where it was stored as 0
+// (happens when waste was logged before any PO was received)
+export const recalculateWasteCosts = async (): Promise<{ updated: number }> => {
+  const zeroCostRecords = await WasteRecord.find({ costImpact: 0 });
+  let updated = 0;
+
+  for (const record of zeroCostRecords) {
+    const avgPrice = await calculateAverageUnitPrice(record.materialId.toString());
+    if (avgPrice > 0) {
+      record.costImpact = record.quantity * avgPrice;
+      await record.save();
+      updated++;
+    }
+  }
+
+  return { updated };
 };

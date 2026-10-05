@@ -6,4 +6,7 @@ export declare const getAllWasteRecords: (query: any) => Promise<{
     meta: any;
 }>;
 export declare const getWasteRecordById: (id: string) => Promise<IWasteRecord>;
+export declare const recalculateWasteCosts: () => Promise<{
+    updated: number;
+}>;
 //# sourceMappingURL=waste.service.d.ts.map
