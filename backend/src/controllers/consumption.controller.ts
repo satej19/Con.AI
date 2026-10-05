@@ -8,6 +8,7 @@ import {
   updateConsumptionPlan,
   getVarianceAnalysis,
   getVarianceReport,
+  syncActuals,
 } from '../services/consumption.service';
 import { CreateConsumptionPlanInput, UpdateConsumptionPlanInput } from '../validators/consumption.validator';
 
@@ -60,4 +61,13 @@ export const getReport = async (req: AuthRequest, res: Response): Promise<void> 
   }
   const report = await getVarianceReport(projectId, period as string);
   ApiResponse.success(res, 200, 'Variance report retrieved successfully', report);
+};
+
+export const sync = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params;
+  if (typeof id !== 'string') {
+    throw new Error('Invalid ID');
+  }
+  const result = await syncActuals(id);
+  ApiResponse.success(res, 200, 'Actuals synced from inventory transactions', result);
 };

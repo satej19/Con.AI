@@ -11,6 +11,7 @@ import wasteRoutes from './waste.routes';
 import consumptionRoutes from './consumption.routes';
 import analyticsRoutes from './analytics.routes';
 import dashboardRoutes from './dashboard.routes';
+import aiRoutes from './ai.routes';
 
 const router = Router();
 
@@ -37,5 +38,6 @@ router.use('/waste', wasteRoutes);
 router.use('/consumption-plans', consumptionRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/ai', aiRoutes);
 
 export default router;

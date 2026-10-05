@@ -58,6 +58,8 @@ router.get('/report', (0, validate_1.validateQuery)(zod_1.z.object({
     projectId: zod_1.z.string(),
     period: zod_1.z.string().optional(),
 })), (0, asyncHandler_1.asyncHandler)(consumptionController.getReport));
+// Sync actuals from inventory transactions + PO data (admin, manager)
+router.post('/:id/sync', authorize_1.requireManager, (0, validate_1.validateParams)(consumption_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.sync));
 // Get single consumption plan (all authenticated users)
 router.get('/:id', (0, validate_1.validateParams)(consumption_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(consumptionController.getById));
 // Update consumption plan (admin, manager)

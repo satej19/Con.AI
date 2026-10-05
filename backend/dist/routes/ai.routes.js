@@ -36,20 +36,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const asyncHandler_1 = require("../middleware/asyncHandler");
 const authenticate_1 = require("../middleware/authenticate");
-const authorize_1 = require("../middleware/authorize");
-const validate_1 = require("../middleware/validate");
-const waste_validator_1 = require("../validators/waste.validator");
-const wasteController = __importStar(require("../controllers/waste.controller"));
+const aiController = __importStar(require("../controllers/ai.controller"));
 const router = (0, express_1.Router)();
-// All routes require authentication
 router.use(authenticate_1.authenticate);
-// Create waste record (admin, manager)
-router.post('/', authorize_1.requireManager, (0, validate_1.validateBody)(waste_validator_1.createWasteSchema), (0, asyncHandler_1.asyncHandler)(wasteController.create));
-// Recalculate cost impact for all zero-cost records (admin, manager)
-router.post('/recalculate', authorize_1.requireManager, (0, asyncHandler_1.asyncHandler)(wasteController.recalculate));
-// List waste records (all authenticated users)
-router.get('/', (0, asyncHandler_1.asyncHandler)(wasteController.list));
-// Get single waste record (all authenticated users)
-router.get('/:id', (0, validate_1.validateParams)(waste_validator_1.idParamSchema), (0, asyncHandler_1.asyncHandler)(wasteController.getById));
+router.post('/chat', (0, asyncHandler_1.asyncHandler)(aiController.chat));
 exports.default = router;
-//# sourceMappingURL=waste.routes.js.map
+//# sourceMappingURL=ai.routes.js.map

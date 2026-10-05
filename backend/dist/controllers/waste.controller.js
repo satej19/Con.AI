@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getById = exports.list = exports.create = void 0;
+exports.recalculate = exports.getById = exports.list = exports.create = void 0;
 const ApiResponse_1 = require("../utils/ApiResponse");
 const waste_service_1 = require("../services/waste.service");
 const create = async (req, res) => {
@@ -26,4 +26,9 @@ const getById = async (req, res) => {
     ApiResponse_1.ApiResponse.success(res, 200, 'Waste record retrieved successfully', wasteRecord);
 };
 exports.getById = getById;
+const recalculate = async (_req, res) => {
+    const result = await (0, waste_service_1.recalculateWasteCosts)();
+    ApiResponse_1.ApiResponse.success(res, 200, `Recalculated cost impact for ${result.updated} waste record(s)`, result);
+};
+exports.recalculate = recalculate;
 //# sourceMappingURL=waste.controller.js.map

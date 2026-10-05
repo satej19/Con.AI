@@ -9,4 +9,5 @@ export declare const getConsumptionPlanById: (id: string) => Promise<IConsumptio
 export declare const updateConsumptionPlan: (id: string, input: UpdateConsumptionPlanInput) => Promise<IConsumptionPlan>;
 export declare const getVarianceAnalysis: (id: string) => Promise<any>;
 export declare const getVarianceReport: (projectId: string, period: string) => Promise<any>;
+export declare const syncActuals: (id: string) => Promise<any>;
 //# sourceMappingURL=consumption.service.d.ts.map

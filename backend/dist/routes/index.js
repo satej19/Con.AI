@@ -16,6 +16,7 @@ const waste_routes_1 = __importDefault(require("./waste.routes"));
 const consumption_routes_1 = __importDefault(require("./consumption.routes"));
 const analytics_routes_1 = __importDefault(require("./analytics.routes"));
 const dashboard_routes_1 = __importDefault(require("./dashboard.routes"));
+const ai_routes_1 = __importDefault(require("./ai.routes"));
 const router = (0, express_1.Router)();
 // Health check endpoint
 router.get('/health', (_req, res) => {
@@ -39,5 +40,6 @@ router.use('/waste', waste_routes_1.default);
 router.use('/consumption-plans', consumption_routes_1.default);
 router.use('/analytics', analytics_routes_1.default);
 router.use('/dashboard', dashboard_routes_1.default);
+router.use('/ai', ai_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

@@ -7,5 +7,6 @@ export declare const env: {
     BCRYPT_SALT_ROUNDS: number;
     CORS_ORIGIN: string;
     ADMIN_EMAIL?: string | undefined;
+    GEMINI_API_KEY?: string | undefined;
 };
 //# sourceMappingURL=env.d.ts.map

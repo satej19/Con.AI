@@ -3,16 +3,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getWasteRecordById = exports.getAllWasteRecords = exports.createWasteRecord = void 0;
+exports.recalculateWasteCosts = exports.getWasteRecordById = exports.getAllWasteRecords = exports.createWasteRecord = void 0;
 const WasteRecord_model_1 = __importDefault(require("../models/WasteRecord.model"));
 const Material_model_1 = __importDefault(require("../models/Material.model"));
 const Project_model_1 = __importDefault(require("../models/Project.model"));
 const PurchaseOrder_model_1 = __importDefault(require("../models/PurchaseOrder.model"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const AppError_1 = require("../utils/AppError");
 const pagination_1 = require("../utils/pagination");
 const calculateAverageUnitPrice = async (materialId) => {
+    // Cast to ObjectId for reliable subdocument matching
+    const materialObjectId = new mongoose_1.default.Types.ObjectId(materialId);
     const purchaseOrders = await PurchaseOrder_model_1.default.find({
-        'items.materialId': materialId,
+        'items.materialId': materialObjectId,
         status: { $in: ['approved', 'partially_received', 'received'] },
     });
     if (purchaseOrders.length === 0) {
@@ -99,4 +102,20 @@ const getWasteRecordById = async (id) => {
     return wasteRecord;
 };
 exports.getWasteRecordById = getWasteRecordById;
+// Recalculates costImpact for all records where it was stored as 0
+// (happens when waste was logged before any PO was received)
+const recalculateWasteCosts = async () => {
+    const zeroCostRecords = await WasteRecord_model_1.default.find({ costImpact: 0 });
+    let updated = 0;
+    for (const record of zeroCostRecords) {
+        const avgPrice = await calculateAverageUnitPrice(record.materialId.toString());
+        if (avgPrice > 0) {
+            record.costImpact = record.quantity * avgPrice;
+            await record.save();
+            updated++;
+        }
+    }
+    return { updated };
+};
+exports.recalculateWasteCosts = recalculateWasteCosts;
 //# sourceMappingURL=waste.service.js.map

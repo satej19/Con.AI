@@ -3,10 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getVarianceReport = exports.getVarianceAnalysis = exports.updateConsumptionPlan = exports.getConsumptionPlanById = exports.getAllConsumptionPlans = exports.createConsumptionPlan = void 0;
+exports.syncActuals = exports.getVarianceReport = exports.getVarianceAnalysis = exports.updateConsumptionPlan = exports.getConsumptionPlanById = exports.getAllConsumptionPlans = exports.createConsumptionPlan = void 0;
 const ConsumptionPlan_model_1 = __importDefault(require("../models/ConsumptionPlan.model"));
 const Material_model_1 = __importDefault(require("../models/Material.model"));
 const Project_model_1 = __importDefault(require("../models/Project.model"));
+const InventoryTransaction_model_1 = __importDefault(require("../models/InventoryTransaction.model"));
+const PurchaseOrder_model_1 = __importDefault(require("../models/PurchaseOrder.model"));
 const AppError_1 = require("../utils/AppError");
 const pagination_1 = require("../utils/pagination");
 const createConsumptionPlan = async (input, userId) => {
@@ -160,4 +162,101 @@ const getVarianceReport = async (projectId, period) => {
     };
 };
 exports.getVarianceReport = getVarianceReport;
+const syncActuals = async (id) => {
+    const consumptionPlan = await ConsumptionPlan_model_1.default.findById(id);
+    if (!consumptionPlan) {
+        throw new AppError_1.AppError('Consumption plan not found', 404);
+    }
+    // Derive the date range from the period string.
+    // Supported formats: "YYYY-MM" (monthly) and "YYYY-QN" (quarterly, e.g. 2026-Q4)
+    let periodStart;
+    let periodEnd;
+    const monthMatch = consumptionPlan.period.match(/^(\d{4})-(\d{2})$/);
+    const quarterMatch = consumptionPlan.period.match(/^(\d{4})-Q([1-4])$/i);
+    if (monthMatch) {
+        const year = parseInt(monthMatch[1], 10);
+        const month = parseInt(monthMatch[2], 10) - 1; // 0-indexed
+        periodStart = new Date(year, month, 1);
+        periodEnd = new Date(year, month + 1, 1); // exclusive upper bound
+    }
+    else if (quarterMatch) {
+        const year = parseInt(quarterMatch[1], 10);
+        const quarter = parseInt(quarterMatch[2], 10);
+        const startMonth = (quarter - 1) * 3; // Q1→0, Q2→3, Q3→6, Q4→9
+        periodStart = new Date(year, startMonth, 1);
+        periodEnd = new Date(year, startMonth + 3, 1);
+    }
+    else {
+        throw new AppError_1.AppError(`Unrecognised period format "${consumptionPlan.period}". Use YYYY-MM or YYYY-QN.`, 400);
+    }
+    // actualQuantity — sum of all ISSUE transactions for this material+project in the period
+    const issueAgg = await InventoryTransaction_model_1.default.aggregate([
+        {
+            $match: {
+                materialId: consumptionPlan.materialId,
+                projectId: consumptionPlan.projectId,
+                type: 'ISSUE',
+                date: { $gte: periodStart, $lt: periodEnd },
+            },
+        },
+        {
+            $group: {
+                _id: null,
+                totalIssued: { $sum: '$quantity' },
+            },
+        },
+    ]);
+    const actualQuantity = issueAgg[0]?.totalIssued ?? 0;
+    // actualUnitCost — weighted average unit price from received PO items for this material+project
+    // We look across all time (not just the period) so we always have a price reference.
+    const poAgg = await PurchaseOrder_model_1.default.aggregate([
+        {
+            $match: {
+                projectId: consumptionPlan.projectId,
+                status: { $in: ['received', 'partially_received'] },
+            },
+        },
+        { $unwind: '$items' },
+        {
+            $match: {
+                'items.materialId': consumptionPlan.materialId,
+                'items.receivedQuantity': { $gt: 0 },
+            },
+        },
+        {
+            $group: {
+                _id: null,
+                totalValue: {
+                    $sum: { $multiply: ['$items.receivedQuantity', '$items.unitPrice'] },
+                },
+                totalReceived: { $sum: '$items.receivedQuantity' },
+            },
+        },
+    ]);
+    const actualUnitCost = poAgg[0] && poAgg[0].totalReceived > 0
+        ? poAgg[0].totalValue / poAgg[0].totalReceived
+        : consumptionPlan.actualUnitCost; // keep existing value if no PO data yet
+    // Persist the synced values
+    consumptionPlan.actualQuantity = actualQuantity;
+    consumptionPlan.actualUnitCost = Math.round(actualUnitCost * 100) / 100; // round to 2dp
+    await consumptionPlan.save();
+    // Return with full variance breakdown
+    const plannedCost = consumptionPlan.plannedQuantity * consumptionPlan.plannedUnitCost;
+    const actualCost = actualQuantity * consumptionPlan.actualUnitCost;
+    return {
+        ...(consumptionPlan.toObject()),
+        syncedFrom: { periodStart, periodEnd },
+        variance: {
+            quantityVariance: actualQuantity - consumptionPlan.plannedQuantity,
+            quantityVariancePct: consumptionPlan.plannedQuantity > 0
+                ? ((actualQuantity - consumptionPlan.plannedQuantity) / consumptionPlan.plannedQuantity) * 100
+                : 0,
+            plannedCost,
+            actualCost,
+            costVariance: actualCost - plannedCost,
+            costVariancePct: plannedCost > 0 ? ((actualCost - plannedCost) / plannedCost) * 100 : 0,
+        },
+    };
+};
+exports.syncActuals = syncActuals;
 //# sourceMappingURL=consumption.service.js.map

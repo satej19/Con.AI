@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getReport = exports.getVariance = exports.update = exports.getById = exports.list = exports.create = void 0;
+exports.sync = exports.getReport = exports.getVariance = exports.update = exports.getById = exports.list = exports.create = void 0;
 const ApiResponse_1 = require("../utils/ApiResponse");
 const consumption_service_1 = require("../services/consumption.service");
 const create = async (req, res) => {
@@ -54,4 +54,13 @@ const getReport = async (req, res) => {
     ApiResponse_1.ApiResponse.success(res, 200, 'Variance report retrieved successfully', report);
 };
 exports.getReport = getReport;
+const sync = async (req, res) => {
+    const { id } = req.params;
+    if (typeof id !== 'string') {
+        throw new Error('Invalid ID');
+    }
+    const result = await (0, consumption_service_1.syncActuals)(id);
+    ApiResponse_1.ApiResponse.success(res, 200, 'Actuals synced from inventory transactions', result);
+};
+exports.sync = sync;
 //# sourceMappingURL=consumption.controller.js.map
