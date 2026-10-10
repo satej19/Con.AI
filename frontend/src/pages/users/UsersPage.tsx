@@ -6,7 +6,7 @@ import { api } from '../../services/api';
 import type { User, UserRole } from '../../types';
 
 const roles: UserRole[] = ['admin', 'manager', 'user'];
-async function getUsers() { const response = await api.get<User[]>('/users'); return Array.isArray(response.data) ? response.data : []; }
+async function getUsers() { const response = await api.get('/users'); const payload = response.data as { users?: User[] } | User[]; return Array.isArray(payload) ? payload : (payload as any).users || []; }
 export function UsersPage() {
   const { user } = useAuth(); const client = useQueryClient(); const [error, setError] = useState<string | null>(null); const users = useQuery({ queryKey: ['users'], queryFn: getUsers });
   const updateRole = useMutation({ mutationFn: ({ id, role }: { id: string; role: UserRole }) => api.patch(`/users/${id}/role`, { role }), onSuccess: () => client.invalidateQueries({ queryKey: ['users'] }), onError: (cause) => setError(cause instanceof Error ? cause.message : 'Unable to update role.') });

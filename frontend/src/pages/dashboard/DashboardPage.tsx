@@ -28,8 +28,20 @@ export const DashboardPage: React.FC = () => {
     try {
       const params = selectedProjectId !== 'all' ? { projectId: selectedProjectId } : undefined;
       const res = await api.get('/dashboard/summary', params);
-      if (res.data) {
-        setData(res.data);
+      const d = res.data as any;
+      if (d) {
+        // Map backend envelope fields → DashboardSummary type
+        setData({
+          activeProjectsCount: d.overview?.activeProjects ?? d.activeProjectsCount ?? 0,
+          totalStockValue: d.inventory?.totalStock ?? d.totalStockValue ?? 0,
+          lowStockCount: d.inventory?.lowStockItems ?? d.lowStockCount ?? 0,
+          pendingPOCount: (d.overview?.approvedPOs ?? 0) + (d.overview?.totalPOs ?? 0) - (d.overview?.receivedPOs ?? 0),
+          monthlyWasteCost: d.financial?.totalWasteCost ?? d.monthlyWasteCost ?? 0,
+          costVariance: d.financial?.costVariance ?? d.costVariance ?? 0,
+          recentPurchaseOrders: d.recent?.purchaseOrders ?? d.recentPurchaseOrders ?? [],
+          recentWasteRecords: d.recent?.wasteRecords ?? d.recentWasteRecords ?? [],
+          lowStockItems: d.lowStockItems ?? [],
+        });
       }
     } catch (err) {
       console.warn('Backend dashboard API offline or empty, using rich demo metrics:', err);

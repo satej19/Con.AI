@@ -24,13 +24,15 @@ type SupplierFormValues = z.infer<typeof supplierSchema>;
 type SupplierFormInput = z.input<typeof supplierSchema>;
 
 async function getSuppliers(search: string) {
-  const response = await api.get<Supplier[]>('/suppliers', { search, limit: 100 });
-  return Array.isArray(response.data) ? response.data : [];
+  const response = await api.get('/suppliers', { search, limit: 100 });
+  const payload = response.data as { suppliers?: Supplier[] } | Supplier[];
+  return Array.isArray(payload) ? payload : (payload as any).suppliers || [];
 }
 
 async function getMaterials() {
-  const response = await api.get<Material[]>('/materials', { limit: 100, isActive: true });
-  return Array.isArray(response.data) ? response.data : [];
+  const response = await api.get('/materials', { limit: 100, isActive: true });
+  const payload = response.data as { materials?: Material[] } | Material[];
+  return Array.isArray(payload) ? payload : (payload as any).materials || [];
 }
 
 export function SuppliersPage() {

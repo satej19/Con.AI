@@ -27,8 +27,8 @@ type MaterialFormInput = z.input<typeof materialSchema>;
 
 async function fetchMaterials(search: string, category: string) {
   const response = await api.get<Material[]>('/materials', { search, category: category || undefined, limit: 100 });
-  const payload = response.data;
-  return Array.isArray(payload) ? payload : [];
+  const payload = response.data as { materials?: Material[] } | Material[];
+  return Array.isArray(payload) ? payload : (payload as any).materials || [];
 }
 
 export function MaterialsPage() {
