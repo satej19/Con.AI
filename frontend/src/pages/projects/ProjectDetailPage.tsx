@@ -352,7 +352,7 @@ export const ProjectDetailPage: React.FC = () => {
                       <td className="py-3 px-4">{pl.plannedQuantity}</td>
                       <td className="py-3 px-4">{pl.actualQuantity}</td>
                       <td className="py-3 px-4 font-mono font-bold text-amber-400">
-                        {pl.costVariance ? formatCurrency(pl.costVariance) : '0'}
+                        {(() => { const cv = (pl.actualQuantity * pl.actualUnitCost) - (pl.plannedQuantity * pl.plannedUnitCost); return <span className={cv > 0 ? 'text-rose-300' : cv < 0 ? 'text-emerald-300' : 'text-slate-400'}>{formatCurrency(cv)}</span>; })()}
                       </td>
                     </tr>
                   ))}
