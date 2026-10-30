@@ -25,9 +25,7 @@ const statuses: Array<PurchaseOrderStatus | ''> = ['', 'draft', 'approved', 'par
 async function list<T>(endpoint: string, params?: Record<string, string | number | boolean | undefined>) {
   const response = await api.get<T[]>(endpoint, params);
   if (Array.isArray(response.data)) return response.data;
-  const key = endpoint === '/projects' ? 'projects' : endpoint === '/suppliers' ? 'suppliers' : endpoint === '/materials' ? 'materials' : 'purchaseOrders';
-  const items = (response.data as unknown as Record<string, T[]>)[key] || [];
-  return key === 'purchaseOrders' ? items.map((order) => { const raw = order as PurchaseOrder & { projectId?: PurchaseOrder['project']; supplierId?: PurchaseOrder['supplier'] }; return { ...raw, project: raw.project || raw.projectId, supplier: raw.supplier || raw.supplierId, items: raw.items.map((item) => ({ ...item, material: item.material || (item as typeof item & { materialId?: typeof item.material }).materialId })) } as T; }) : items;
+  return [];
 }
 
 export function PurchaseOrdersPage() {
@@ -43,7 +41,7 @@ export function PurchaseOrdersPage() {
   const materials = useQuery({ queryKey: ['materials', 'purchase-order'], queryFn: () => list<Material>('/materials', { isActive: true, limit: 100 }) });
   const create = useMutation({ mutationFn: (values: OrderValues) => api.post('/purchase-orders', values), onSuccess: async () => { await client.invalidateQueries({ queryKey: ['purchase-orders'] }); setOpen(false); }, onError: (cause) => setError(cause instanceof Error ? cause.message : 'Unable to create purchase order.') });
   const action = useMutation({ mutationFn: ({ id, endpoint }: { id: string; endpoint: string }) => api.patch(`/purchase-orders/${id}/${endpoint}`), onSuccess: () => client.invalidateQueries({ queryKey: ['purchase-orders'] }), onError: (cause) => setError(cause instanceof Error ? cause.message : 'Unable to update purchase order.') });
-  const canCreate = user && ['admin', 'manager', 'user'].includes(user.role);
+  const canCreate = user && ['admin', 'manager'].includes(user.role);
   const canApprove = user && ['admin', 'manager'].includes(user.role);
   return <div className="space-y-6">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><div className="flex items-center gap-2 text-amber-500"><ShoppingCart size={20} /><span className="eyebrow">PROCUREMENT CONTROL</span></div><h1 className="mt-2 text-2xl font-black font-heading text-white">Purchase Orders</h1><p className="mt-1 text-xs text-slate-400">Track drafts, approvals, deliveries, and goods receipt workflows.</p></div>{canCreate && <button type="button" onClick={() => { setError(null); setOpen(true); }} className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400"><Plus size={16} /> Create purchase order</button>}</div>
