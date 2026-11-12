@@ -25,10 +25,10 @@ const materialSchema = z.object({
 type MaterialFormValues = z.infer<typeof materialSchema>;
 type MaterialFormInput = z.input<typeof materialSchema>;
 
-async function fetchMaterials(search: string, category: string) {
+async function fetchMaterials(search: string, category: string): Promise<Material[]> {
   const response = await api.get<Material[]>('/materials', { search, category: category || undefined, limit: 100 });
   const payload = response.data as { materials?: Material[] } | Material[];
-  return Array.isArray(payload) ? payload : (payload as any).materials || [];
+  return (Array.isArray(payload) ? payload : (payload as any).materials || []) as Material[];
 }
 
 export function MaterialsPage() {
