@@ -23,16 +23,16 @@ const supplierSchema = z.object({
 type SupplierFormValues = z.infer<typeof supplierSchema>;
 type SupplierFormInput = z.input<typeof supplierSchema>;
 
-async function getSuppliers(search: string) {
+async function getSuppliers(search: string): Promise<Supplier[]> {
   const response = await api.get('/suppliers', { search, limit: 100 });
   const payload = response.data as { suppliers?: Supplier[] } | Supplier[];
-  return Array.isArray(payload) ? payload : (payload as any).suppliers || [];
+  return (Array.isArray(payload) ? payload : (payload as any).suppliers || []) as Supplier[];
 }
 
-async function getMaterials() {
+async function getMaterials(): Promise<Material[]> {
   const response = await api.get('/materials', { limit: 100, isActive: true });
   const payload = response.data as { materials?: Material[] } | Material[];
-  return Array.isArray(payload) ? payload : (payload as any).materials || [];
+  return (Array.isArray(payload) ? payload : (payload as any).materials || []) as Material[];
 }
 
 export function SuppliersPage() {
